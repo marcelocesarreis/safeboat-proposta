@@ -28,7 +28,7 @@
   h2:after { content: ""; flex: 1; height: 1px; background: #DDDFE6; }
   .feats { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
   .feat { background: #fff; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 10px rgba(26,31,43,.08); }
-  .feat img { width: 100%; aspect-ratio: 1/1.05; object-fit: cover; display: block; }
+  .feat img { width: 100%; aspect-ratio: 1/1.05; object-fit: cover; display: block; border-radius: 14px 14px 0 0; }
   .feat b { display: block; padding: 12px 14px; font-size: 13px; color: #2D324B; }
   .eqgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
   .eqcard { background: #fff; border-radius: 14px; padding: 12px; text-align: center; box-shadow: 0 2px 10px rgba(26,31,43,.08); }
@@ -93,7 +93,19 @@
     .invest { flex-direction: column; }
     .plusmark, .oumark { align-self: center; }
   }
-  @media print { .print { display: none; } body { background: #fff; } }
+  @media print {
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .print { display: none; }
+    body { background: #fff; }
+    /* cartões nunca quebram entre páginas — evita foto cortada pela borda */
+    .feat, .eqcard, .moncard, .invest .card, .paybox, .okbox, .aceite, .invest-hint { break-inside: avoid; page-break-inside: avoid; }
+    section { break-before: auto; }
+    h2 { break-after: avoid; page-break-after: avoid; }
+    .hero { padding-bottom: 70px; }
+    .hero img.art { max-height: 200px; }
+    .feat, .eqcard, .moncard, .invest .card { box-shadow: none; border: 1px solid #E3E5EB; }
+    .card.plan:hover { transform: none; }
+  }
 </style>
 </head>
 <body>
@@ -135,6 +147,7 @@ const KIT_IMGS = {
   'Sensor de alagamento': 'img/eq-alagamento.jpg',
   'Cabo NMEA': 'img/eq-cabo-nmea.jpg',
   'T NMEA': 'img/eq-t-nmea.jpg',
+  'Sensor de consumo de bateria': 'img/eq-bateria.jpg',
 };
 
 const esc = (s) => String(s || '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
@@ -218,6 +231,8 @@ function pubKitCard(item) {
     '<b>' + esc(item) + '</b></div>';
 }
 
+const isento = () => !Number(p.valor);
+
 function render() {
   const temRede = p.rede === 'can' || p.rede === 'nmea';
   const kitItens = String(p.kit).split(' + ');
@@ -254,9 +269,11 @@ function render() {
       '<div class="moncard"><b>🛥 Embarcação e segurança</b><ul>' + MONITORAVEIS_BASE.map((m) => '<li>' + esc(m) + '</li>').join('') + '</ul></div>' +
     '</div></section>' +
     '<section><h2>Investimento</h2>' +
-    '<div class="invest-hint">O investimento tem <b>dois componentes</b> — a <b>implementação</b> (única) <b>+</b> a <b>assinatura</b> (mensal ou anual) — <b>pagos juntos, em um único PIX, no fechamento</b>.</div>' +
+    (isento()
+      ? '<div class="invest-hint">🎁 <b>Implementação isenta</b> — você paga apenas a <b>assinatura</b> (mensal ou anual) no fechamento.</div>'
+      : '<div class="invest-hint">O investimento tem <b>dois componentes</b> — a <b>implementação</b> (única) <b>+</b> a <b>assinatura</b> (mensal ou anual) — <b>pagos juntos, em um único PIX, no fechamento</b>.</div>') +
     '<div class="invest">' +
-      '<div class="card"><div class="t">Implementação · pagamento único</div><div class="v">' + fmtBRL(p.valor) + '</div><div class="d">Kit completo + instalação por equipe técnica SAFEBOAT em <b>até 30 dias</b> após o pagamento.</div></div>' +
+      '<div class="card"><div class="t">Implementação · pagamento único</div><div class="v">' + (isento() ? 'Isenta 🎁' : fmtBRL(p.valor)) + '</div><div class="d">' + (isento() ? 'Cortesia SAFEBOAT — kit e instalação' : 'Kit completo + instalação') + ' por equipe técnica SAFEBOAT em <b>até 30 dias</b> após o pagamento.</div></div>' +
       '<div class="plusmark">+</div>' +
       '<div class="card plan" data-plano="mensal"><div class="mark"></div><div class="t">Assinatura mensal</div><div class="v">' + fmtBRL(PLANOS.mensal.valor) + '<small>/mês</small></div><div class="d">1ª mensalidade paga no fechamento. O período de uso só começa após a implementação.</div></div>' +
       '<div class="oumark">OU</div>' +
@@ -282,7 +299,7 @@ function render() {
 
 function ctaLabel() {
   return planoSel
-    ? 'Aceitar termos e contratar — pagar ' + fmtBRL(totalCom(planoSel)) + ' (implementação + ' + (planoSel === 'anual' ? 'anuidade' : '1ª mensalidade') + ')'
+    ? 'Aceitar termos e contratar — pagar ' + fmtBRL(totalCom(planoSel)) + ' (' + (isento() ? '' : 'implementação + ') + (planoSel === 'anual' ? 'anuidade' : '1ª mensalidade') + ')'
     : 'Aceitar termos e contratar';
 }
 
@@ -310,7 +327,7 @@ function renderAceite() {
       '<div class="pay-opt' + (pagSel === 'cartao' ? ' sel' : '') + '" data-pag="cartao">💳 Cartão de crédito</div>' +
     '</div>' +
     '<button class="cta" id="btnAceitar">' + ctaLabel() + '</button>' +
-    '<div style="margin-top:10px;font-size:12px;color:#8A8F9C;text-align:center">O pagamento no fechamento inclui a implementação <b>+</b> a assinatura escolhida (mensalidade ou anuidade integral). O período de uso passa a valer <b>somente após a implementação</b> · instalação em até <b>30 dias</b> a partir do pagamento.</div>' +
+    '<div style="margin-top:10px;font-size:12px;color:#8A8F9C;text-align:center">' + (isento() ? 'O pagamento no fechamento é apenas da assinatura escolhida (mensalidade ou anuidade integral) — a implementação é cortesia.' : 'O pagamento no fechamento inclui a implementação <b>+</b> a assinatura escolhida (mensalidade ou anuidade integral).') + ' O período de uso passa a valer <b>somente após a implementação</b> · instalação em até <b>30 dias</b> a partir do pagamento.</div>' +
   '</div>';
   document.querySelectorAll('.pay-opt').forEach((el) => el.addEventListener('click', () => {
     pagSel = el.dataset.pag;
@@ -324,7 +341,7 @@ function pagamentoHTML() {
   const total = totalCom(p.plano);
   const resumo =
     '<div style="display:inline-block;text-align:left;margin:6px auto 2px;font-size:13px;color:#3A3F4E">' +
-      '<div>Implementação <b style="float:right;margin-left:26px">' + fmtBRL(p.valor) + '</b></div>' +
+      '<div>Implementação <b style="float:right;margin-left:26px">' + (isento() ? 'Isenta 🎁' : fmtBRL(p.valor)) + '</b></div>' +
       (plano ? '<div>Assinatura ' + plano.label.toLowerCase() + (p.plano === 'anual' ? ' (anuidade integral)' : ' (1ª mensalidade)') + ' <b style="float:right;margin-left:26px">' + fmtBRL(plano.valor) + '</b></div>' : '') +
       '<div style="border-top:1px solid #E3E5EB;margin-top:6px;padding-top:6px;font-weight:800;color:#2D324B">Total <span style="float:right;margin-left:26px;font-size:22px">' + fmtBRL(total) + '</span></div>' +
     '</div>';
@@ -335,18 +352,18 @@ function pagamentoHTML() {
     '</div>';
   let inner;
   if ((p.pagamento || pagSel) === 'cartao' && PAGAMENTO.linkCartao) {
-    inner = '<div style="font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#8A8F9C;font-weight:700">Pagamento · implementação + assinatura</div>' +
+    inner = '<div style="font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#8A8F9C;font-weight:700">Pagamento · ' + (isento() ? 'assinatura (implementação isenta)' : 'implementação + assinatura') + '</div>' +
       resumo +
       '<a href="' + PAGAMENTO.linkCartao + '" target="_blank"><button class="btnc">💳 Pagar com cartão de crédito</button></a>';
   } else if (PAGAMENTO.pixChave) {
-    inner = '<div style="font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#8A8F9C;font-weight:700">Pagamento via PIX · implementação + assinatura</div>' +
+    inner = '<div style="font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#8A8F9C;font-weight:700">Pagamento via PIX · ' + (isento() ? 'assinatura (implementação isenta)' : 'implementação + assinatura') + '</div>' +
       resumo +
       '<div id="pixQr"></div>' +
       '<div style="font-size:12.5px;color:#4E5666">Escaneie com o app do seu banco · Favorecido: ' + esc(PAGAMENTO.pixNome) + '</div>' +
       '<div class="copia" id="pixCopia"></div>' +
       '<button class="btnc" id="btnCopiaPix">📋 Copiar código PIX (copia e cola)</button>';
   } else {
-    inner = '<div style="font-size:15px;font-weight:700;color:#2D324B">Total a pagar (implementação + assinatura): ' + fmtBRL(total) + '</div>' +
+    inner = '<div style="font-size:15px;font-weight:700;color:#2D324B">Total a pagar (' + (isento() ? 'assinatura — implementação isenta' : 'implementação + assinatura') + '): ' + fmtBRL(total) + '</div>' +
       '<div style="margin-top:8px;font-size:13.5px;color:#4E5666">Nossa equipe entrará em contato pelo WhatsApp com os dados de pagamento.</div>';
   }
   return '<div class="paybox">' + inner + avisos + '</div>';
