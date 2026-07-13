@@ -120,7 +120,10 @@ const PAGAMENTO = {
 const REDES = {
   nenhuma: { label: 'Sem rede NMEA e sem rede CAN' },
   nmea: { label: 'Rede NMEA com dados de motor convertidos' },
-  can: { label: 'Rede CAN (sem NMEA)' },
+  can: {
+    label: 'Com rede CAN, não conectada à rede NMEA',
+    obs: 'Se a embarcação não possuir rede NMEA, criaremos uma e converteremos os dados CAN — lendo todos os dados de motor. Se já possuir, converteremos os dados dos motores e os conectaremos à rede NMEA existente, lendo também tudo o mais que estiver a bordo.',
+  },
 };
 const MONITORAVEIS_BASE = ['Rastreio','Velocidade','Acionamentos de bomba de porão','Alarme de alagamento','Alarme detector de fumaça','Tensão de todos os bancos de bateria da embarcação','Posição da chave geral','Temperatura da casa de máquinas','Umidade na casa de máquinas'];
 const MONITORAVEIS_MOTOR = ['Horímetro','Rotação','Pressão de óleo','Temperatura de óleo','Temperatura de coolant','Pressão de combustível','Pressão de turbina','Consumo instantâneo e por trajeto'];
@@ -245,6 +248,7 @@ function render() {
     '<section><h2>O que será monitorado</h2><div class="mongrid">' +
       (temRede
         ? '<div class="moncard"><b>🔧 Dados via rede CAN/NMEA — todos os parâmetros que o motor fornecer</b><ul>' + MONITORAVEIS_MOTOR.concat(MONITORAVEIS_EXTRA).map((m) => '<li>' + esc(m) + '</li>').join('') + '</ul>' +
+          (p.rede === 'can' && REDES.can.obs ? '<div class="obs"><b>Instalação:</b> ' + esc(REDES.can.obs) + '</div>' : '') +
           '<div class="obs"><b>Obs.:</b> a disponibilidade de cada parâmetro depende do modelo do motor. Motores que não possuem o sensor correspondente não transmitem esse dado na rede — o SAFEBOAT exibirá todos os parâmetros que o seu motor disponibilizar.</div></div>'
         : '') +
       '<div class="moncard"><b>🛥 Embarcação e segurança</b><ul>' + MONITORAVEIS_BASE.map((m) => '<li>' + esc(m) + '</li>').join('') + '</ul></div>' +
