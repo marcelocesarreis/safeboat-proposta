@@ -312,7 +312,8 @@ function renderAceite() {
       '<div style="margin-top:6px;color:#3A3F4E;font-size:13.5px">Aceita por <b>' + esc(p.aceite_nome || p.cliente) + '</b>' +
       (p.aceite_at ? ' em ' + fmtData(String(p.aceite_at).slice(0, 10)) : '') +
       (p.plano && PLANOS[p.plano] ? ' · Plano ' + PLANOS[p.plano].label + ' (' + fmtBRL(PLANOS[p.plano].valor) + PLANOS[p.plano].sufixo + ')' : '') + '</div>' +
-      '<div style="margin-top:4px;font-size:12.5px;color:#4E5666">Contrato: <a href="' + termosUrl + '" target="_blank" style="color:#2264BE;font-weight:700">termos de uso aceitos</a></div></div>' +
+      '<div style="margin-top:4px;font-size:12.5px;color:#4E5666">Contrato: <a href="' + termosUrl + '" target="_blank" style="color:#2264BE;font-weight:700">termos de uso aceitos</a></div>' +
+      '<a href="contrato.html?p=' + ref.n + '-' + ref.t + '" target="_blank" style="display:inline-block;margin-top:14px;background:#2D324B;color:#fff;text-decoration:none;border-radius:10px;padding:11px 20px;font-size:13.5px;font-weight:700">📜 Ver contrato assinado (PDF)</a></div>' +
       pagamentoHTML();
     wirePagamento();
     return;
@@ -386,6 +387,19 @@ function wirePagamento() {
   }
 }
 
+/* Evidência da assinatura: snapshot integral do contrato aceito + hash SHA-256.
+   O hash prova QUAL texto foi aceito; o snapshot preserva o contrato no banco
+   mesmo que os termos publicados mudem depois. */
+async function evidenciaContrato() {
+  try {
+    const url = p.segmento === 'B2B' ? 'termos-b2b.html' : 'termos-b2c.html';
+    const html = await (await fetch(url, { cache: 'no-store' })).text();
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(html));
+    const hash = Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
+    return { hash, html };
+  } catch (e) { return { hash: null, html: null }; }
+}
+
 async function aceitarProposta() {
   const nome = document.getElementById('aNome').value.trim();
   const doc = document.getElementById('aDoc').value.trim();
@@ -394,10 +408,16 @@ async function aceitarProposta() {
   if (!document.getElementById('aTermos').checked) { alert('É necessário aceitar os Termos de Uso e o Contrato para contratar.'); return; }
   const btn = document.getElementById('btnAceitar');
   btn.disabled = true; btn.textContent = 'Registrando aceite…';
+  const ev = await evidenciaContrato();
   let ok = false;
   try {
-    ok = await rpc('prop_aceitar', { n: ref.n, t: ref.t, p_nome: nome, p_doc: doc, p_plano: planoSel, p_pag: pagSel });
-  } catch (e) { ok = false; }
+    ok = await rpc('prop_aceitar', { n: ref.n, t: ref.t, p_nome: nome, p_doc: doc, p_plano: planoSel, p_pag: pagSel, p_hash: ev.hash, p_contrato: ev.html });
+  } catch (e) {
+    // banco ainda sem as colunas de evidência → registra o aceite básico
+    try {
+      ok = await rpc('prop_aceitar', { n: ref.n, t: ref.t, p_nome: nome, p_doc: doc, p_plano: planoSel, p_pag: pagSel });
+    } catch (e2) { ok = false; }
+  }
   if (!ok) {
     btn.disabled = false; btn.textContent = 'Tentar novamente';
     alert('Não foi possível registrar o aceite. Verifique sua conexão e tente de novo.');
