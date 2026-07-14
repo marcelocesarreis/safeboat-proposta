@@ -358,6 +358,7 @@ function renderAceite() {
       '<div style="margin-top:6px;color:#3A3F4E;font-size:13.5px">Aceita por <b>' + esc(p.aceite_nome || p.cliente) + '</b>' +
       (p.aceite_at ? ' em ' + fmtData(String(p.aceite_at).slice(0, 10)) : '') +
       (p.plano && PLANOS[p.plano] ? ' · Plano ' + PLANOS[p.plano].label + ' (' + fmtBRL(planoValor(p.plano)) + PLANOS[p.plano].sufixo + ')' : '') + '</div>' +
+      (p.aceite_email ? '<div style="margin-top:4px;font-size:12.5px;color:#4E5666">📧 Uma via do contrato será enviada para <b>' + esc(p.aceite_email) + '</b> — este e-mail também será seu acesso ao app SAFEBOAT.</div>' : '') +
       '<div style="margin-top:4px;font-size:12.5px;color:#4E5666">Contrato: <a href="' + termosUrl + '" target="_blank" style="color:#2264BE;font-weight:700">termos de uso aceitos</a></div>' +
       '<a href="contrato.html?p=' + ref.n + '-' + ref.t + '" target="_blank" style="display:inline-block;margin-top:14px;background:#2D324B;color:#fff;text-decoration:none;border-radius:10px;padding:11px 20px;font-size:13.5px;font-weight:700">📜 Ver contrato assinado (PDF)</a></div>' +
       pagamentoHTML();
@@ -368,6 +369,7 @@ function renderAceite() {
     '<div style="font-size:14px;color:#3A3F4E">Escolha acima o plano de assinatura, confira os termos e finalize — leva menos de um minuto.</div>' +
     '<label class="f">Nome completo do responsável *</label><input type="text" id="aNome" placeholder="Seu nome completo">' +
     '<label class="f">' + (p.segmento === 'B2B' ? 'CNPJ *' : 'CPF *') + '</label><input type="text" id="aDoc" placeholder="' + (p.segmento === 'B2B' ? '00.000.000/0000-00' : '000.000.000-00') + '">' +
+    '<label class="f">E-mail *</label><input type="email" id="aEmail" inputmode="email" placeholder="seu@email.com"><div style="font-size:11.5px;color:#8A8F9C;margin-top:4px">Enviaremos o contrato assinado para este e-mail, que também será seu acesso ao app SAFEBOAT.</div>' +
     '<div class="check"><input type="checkbox" id="aTermos"><span>Li e aceito os <a href="' + termosUrl + '" target="_blank">Termos de Uso e o Contrato de Prestação de Serviços</a> da SAFEBOAT (' + (p.segmento === 'B2B' ? 'empresas' : 'pessoa física') + ').</span></div>' +
     '<div class="pay-opts">' +
       '<div class="pay-opt' + (pagSel === 'pix' ? ' sel' : '') + '" data-pag="pix">💠 PIX (QR Code)</div>' +
@@ -463,15 +465,17 @@ async function evidenciaContrato() {
 async function aceitarProposta() {
   const nome = document.getElementById('aNome').value.trim();
   const doc = document.getElementById('aDoc').value.trim();
+  const email = document.getElementById('aEmail').value.trim().toLowerCase();
   if (!planoSel) { alert(isUpgrade() ? 'Confirme qual é o seu plano atual (mensal ou anual) na seção Investimento.' : 'Escolha o plano de assinatura (mensal ou anual) na seção Investimento.'); return; }
   if (!nome || !doc) { alert('Preencha seu nome completo e ' + (p.segmento === 'B2B' ? 'CNPJ' : 'CPF') + '.'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { alert('Informe um e-mail válido — ele será seu acesso ao app e receberá o contrato.'); return; }
   if (!document.getElementById('aTermos').checked) { alert('É necessário aceitar os Termos de Uso e o Contrato para contratar.'); return; }
   const btn = document.getElementById('btnAceitar');
   btn.disabled = true; btn.textContent = 'Registrando aceite…';
   const ev = await evidenciaContrato();
   let ok = false;
   try {
-    ok = await rpc('prop_aceitar', { n: ref.n, t: ref.t, p_nome: nome, p_doc: doc, p_plano: planoSel, p_pag: pagSel, p_hash: ev.hash, p_contrato: ev.html });
+    ok = await rpc('prop_aceitar', { n: ref.n, t: ref.t, p_nome: nome, p_doc: doc, p_plano: planoSel, p_pag: pagSel, p_hash: ev.hash, p_contrato: ev.html, p_email: email });
   } catch (e) {
     // banco ainda sem as colunas de evidência → registra o aceite básico
     try {
