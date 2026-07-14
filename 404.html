@@ -243,7 +243,7 @@ function render() {
   const upg = isUpgrade();
   const renov = isRenov();
   const kitItens = String(p.kit).split(' + ').filter((k) => k && k !== '#UPGRADE' && k !== '#RENOVACAO');
-  const termosUrl = p.segmento === 'B2B' ? 'termos-b2b.html' : 'termos-b2c.html';
+  const termosUrl = (p.segmento === 'B2B' ? 'termos-b2b.html' : 'termos-b2c.html') + '?p=' + ref.n + '-' + ref.t;
   const numeroFmt = 'Nº ' + String(p.numero).padStart(4, '0');
   const validade = (() => { const d = new Date(p.created_at || Date.now()); d.setDate(d.getDate() + 30); return fmtData(d.toISOString()); })();
 
@@ -330,7 +330,7 @@ function ctaLabel() {
 }
 
 function renderAceite() {
-  const termosUrl = p.segmento === 'B2B' ? 'termos-b2b.html' : 'termos-b2c.html';
+  const termosUrl = (p.segmento === 'B2B' ? 'termos-b2b.html' : 'termos-b2c.html') + '?p=' + ref.n + '-' + ref.t;
   const sec = document.getElementById('secAceite');
   if (p.status === 'aceita') {
     sec.innerHTML = '<h2>Contratação</h2>' +
