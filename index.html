@@ -27,9 +27,8 @@
   h2 { font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: #4E5666; font-weight: 800; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
   h2:after { content: ""; flex: 1; height: 1px; background: #DDDFE6; }
   .feats { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
-  .feat { background: #fff; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 10px rgba(26,31,43,.08); }
-  .feat img { width: 100%; aspect-ratio: 1/1.05; object-fit: cover; display: block; border-radius: 14px 14px 0 0; }
-  .feat b { display: block; padding: 12px 14px; font-size: 13px; color: #2D324B; }
+  .feat { border-radius: 14px; overflow: hidden; box-shadow: 0 4px 16px rgba(26,31,43,.14); }
+  .feat img { width: 100%; aspect-ratio: 826 / 780; object-fit: cover; display: block; }
   .eqgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
   .eqcard { background: #fff; border-radius: 14px; padding: 12px; text-align: center; box-shadow: 0 2px 10px rgba(26,31,43,.08); }
   .eqcard img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 10px; background: #2D324B; border: 1px solid #E3E5EB; }
@@ -260,10 +259,10 @@ function render() {
     '</div><img class="art" src="img/recursos.jpg" alt="SAFEBOAT no barco"></div></div>' +
     '<main>' +
     '<section><h2>Por que SAFEBOAT</h2><div class="feats">' +
-      '<div class="feat"><img src="img/telemetria.jpg" alt="Telemetria"><b>Telemetria de motores e parâmetros-chave</b></div>' +
-      '<div class="feat"><img src="img/cerca.jpg" alt="Cerca virtual"><b>Rastreamento e cerca virtual com alarme de âncora</b></div>' +
-      '<div class="feat"><img src="img/sensores.jpg" alt="Sensores"><b>Sensores de fumaça, incêndio e alagamento</b></div>' +
-      '<div class="feat"><img src="img/ia.jpg" alt="IA"><b>Diagnósticos em tempo real com IA integrada</b></div>' +
+      '<div class="feat"><img src="img/telemetria.jpg" alt="Telemetria de motores e parâmetros-chave"></div>' +
+      '<div class="feat"><img src="img/cerca.jpg" alt="Rastreamento e cerca virtual com alarme de âncora"></div>' +
+      '<div class="feat"><img src="img/sensores.jpg" alt="Sensores de fumaça, incêndio e alagamento"></div>' +
+      '<div class="feat"><img src="img/ia.jpg" alt="Diagnósticos em tempo real com IA integrada"></div>' +
     '</div></section>' +
     '<section><h2>Seu kit de instalação</h2><div class="eqgrid">' + kitItens.map(pubKitCard).join('') + '</div></section>' +
     '<section><h2>O que será monitorado</h2><div class="mongrid">' +
