@@ -225,9 +225,22 @@ async function main() {
    paga só a implementação do upgrade (R$500) e MANTÉM a assinatura atual. */
 const isUpgrade = () => String(p.kit || '').split(' + ').includes('#UPGRADE');
 const isRenov = () => String(p.kit || '').split(' + ').includes('#RENOVACAO');
+/* Frota B2B: composição codificada em marcador #B2B=<base64 json> */
+function fleet() {
+  const t = String(p.kit || '').split(' + ').find((k) => k.indexOf('#B2B=') === 0);
+  if (!t) return null;
+  try { return JSON.parse(decodeURIComponent(escape(atob(t.slice(5))))); } catch (e) { return null; }
+}
+const REDE_NOME = { nenhuma: 'Sem rede NMEA/CAN', nmea: 'Rede NMEA', can: 'Rede CAN (com conversor)' };
+/* Valor da assinatura do plano — por frota (B2B) ou fixo (B2C) */
+function planoValor(plano) {
+  const f = fleet();
+  if (f) return f.boats * (plano === 'anual' ? f.subAnual : f.subMensal);
+  return PLANOS[plano] ? PLANOS[plano].valor : 0;
+}
 const totalCom = (plano) => isUpgrade()
   ? Number(p.valor)
-  : Number(p.valor) + (PLANOS[plano] ? PLANOS[plano].valor : 0);
+  : (isRenov() ? planoValor(plano) : Number(p.valor) + planoValor(plano));
 
 function pubKitCard(item) {
   const img = KIT_IMGS[item];
@@ -242,7 +255,8 @@ function render() {
   const temRede = p.rede === 'can' || p.rede === 'nmea';
   const upg = isUpgrade();
   const renov = isRenov();
-  const kitItens = String(p.kit).split(' + ').filter((k) => k && k !== '#UPGRADE' && k !== '#RENOVACAO');
+  const f = fleet();
+  const kitItens = String(p.kit).split(' + ').filter((k) => k && k !== '#UPGRADE' && k !== '#RENOVACAO' && k.indexOf('#B2B=') !== 0);
   const termosUrl = (p.segmento === 'B2B' ? 'termos-b2b.html' : 'termos-b2c.html') + '?p=' + ref.n + '-' + ref.t;
   const numeroFmt = 'Nº ' + String(p.numero).padStart(4, '0');
   const validade = (() => { const d = new Date(p.created_at || Date.now()); d.setDate(d.getDate() + 30); return fmtData(d.toISOString()); })();
@@ -268,7 +282,11 @@ function render() {
     '</div></section>' +
     (renov
       ? '<section><h2>Renovação do seu contrato</h2><div class="moncard"><b>🔄 Renovação de assinatura — sem alteração no sistema</b><div style="margin-top:10px;font-size:13.5px;color:#3A3F4E;line-height:1.6">Seu equipamento SAFEBOAT já está instalado e funcionando. Esta proposta renova a sua assinatura para os próximos 12 meses (ou mensal), mantendo o monitoramento ativo — sem qualquer mudança de hardware ou nova instalação.</div></div></section>'
-      : '<section><h2>Seu kit de instalação</h2><div class="eqgrid">' + kitItens.map(pubKitCard).join('') + '</div></section>' +
+      : (f
+          ? '<section><h2>Sua frota</h2><div class="moncard"><b>🚤 ' + f.boats + ' embarcações</b>' +
+              '<div style="margin-top:10px">' + f.lines.map((l) => '<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #EFF0F4;font-size:13.5px"><span><b>' + l.qtd + '×</b> ' + esc(REDE_NOME[l.redeKey] || l.label) + '</span><span style="color:#6B7080">kit por barco</span></div>').join('') + '</div>' +
+              '<div class="obs" style="margin-top:12px"><b>Cada barco</b> recebe o kit correspondente à sua rede: central SAFEBOAT, sensores de fumaça e alagamento e, quando aplicável, T NMEA, conversor J1939-NMEA e cabo NMEA. A instalação é feita embarcação por embarcação pela equipe técnica SAFEBOAT.</div></div></section>'
+          : '<section><h2>Seu kit de instalação</h2><div class="eqgrid">' + kitItens.map(pubKitCard).join('') + '</div></section>') +
         '<section><h2>O que será monitorado</h2><div class="mongrid">' +
           (temRede
             ? '<div class="moncard"><b>🔧 Dados via rede CAN/NMEA — todos os parâmetros que o motor fornecer</b><ul>' + MONITORAVEIS_MOTOR.concat(MONITORAVEIS_EXTRA).map((m) => '<li>' + esc(m) + '</li>').join('') + '</ul>' +
@@ -281,28 +299,30 @@ function render() {
     (renov
       ? '<div class="invest-hint">Seu contrato SAFEBOAT venceu. Renove sua assinatura para continuar com o monitoramento ativo — escolha mensal ou anual.</div>' +
         '<div class="invest">' +
-          '<div class="card plan" data-plano="mensal"><div class="mark"></div><div class="t">Renovação mensal</div><div class="v">' + fmtBRL(PLANOS.mensal.valor) + '<small>/mês</small></div><div class="d">Renova mês a mês. Cancele quando quiser.</div></div>' +
+          '<div class="card plan" data-plano="mensal"><div class="mark"></div><div class="t">Renovação mensal</div><div class="v">' + fmtBRL(planoValor('mensal')) + '<small>/mês</small></div><div class="d">Renova mês a mês. Cancele quando quiser.</div></div>' +
           '<div class="oumark">OU</div>' +
-          '<div class="card plan" data-plano="anual"><div class="badge">' + PLANOS.anual.destaque + '</div><div class="mark"></div><div class="t">Renovação anual</div><div class="v">' + fmtBRL(PLANOS.anual.valor) + '<small>/ano</small></div><div class="d">Equivale a ' + fmtBRL(PLANOS.anual.valor / 12) + '/mês. 12 meses de monitoramento contínuo.</div></div>' +
+          '<div class="card plan" data-plano="anual"><div class="badge">' + PLANOS.anual.destaque + '</div><div class="mark"></div><div class="t">Renovação anual</div><div class="v">' + fmtBRL(planoValor('anual')) + '<small>/ano</small></div><div class="d">Equivale a ' + fmtBRL(planoValor('anual') / 12) + '/mês. 12 meses de monitoramento contínuo.</div></div>' +
         '</div></section>'
       : (upg
       ? '<div class="invest-hint">Você já é cliente SAFEBOAT. Este <b>upgrade</b> adiciona o acesso à rede NMEA por uma <b>implementação única de ' + fmtBRL(p.valor) + '</b>. Sua <b>assinatura atual é mantida</b> — sem nova cobrança. Confirme abaixo qual é o seu plano atual.</div>' +
         '<div class="invest">' +
           '<div class="card"><div class="t">Upgrade · implementação única</div><div class="v">' + fmtBRL(p.valor) + '</div><div class="d">Adição do acesso à rede NMEA por equipe técnica SAFEBOAT em <b>até 30 dias</b> após o pagamento. Pago no fechamento.</div></div>' +
           '<div class="plusmark" style="background:#0B6B4D">✓</div>' +
-          '<div class="card plan" data-plano="mensal"><div class="mark"></div><div class="t">Meu plano atual é mensal</div><div class="v" style="font-size:19px">Mantido</div><div class="d">Sua mensalidade de ' + fmtBRL(PLANOS.mensal.valor) + ' segue igual — <b>sem nova cobrança</b> neste upgrade.</div></div>' +
+          '<div class="card plan" data-plano="mensal"><div class="mark"></div><div class="t">Meu plano atual é mensal</div><div class="v" style="font-size:19px">Mantido</div><div class="d">Sua mensalidade de ' + fmtBRL(planoValor('mensal')) + ' segue igual — <b>sem nova cobrança</b> neste upgrade.</div></div>' +
           '<div class="oumark">OU</div>' +
-          '<div class="card plan" data-plano="anual"><div class="mark"></div><div class="t">Meu plano atual é anual</div><div class="v" style="font-size:19px">Mantido</div><div class="d">Sua anuidade de ' + fmtBRL(PLANOS.anual.valor) + ' segue igual — <b>sem nova cobrança</b> neste upgrade.</div></div>' +
+          '<div class="card plan" data-plano="anual"><div class="mark"></div><div class="t">Meu plano atual é anual</div><div class="v" style="font-size:19px">Mantido</div><div class="d">Sua anuidade de ' + fmtBRL(planoValor('anual')) + ' segue igual — <b>sem nova cobrança</b> neste upgrade.</div></div>' +
         '</div></section>'
-      : ((isento()
+      : ((f
+          ? '<div class="invest-hint">Frota de <b>' + f.boats + ' embarcações</b>. A <b>implementação</b> soma o setup de cada barco (conforme a rede) e a <b>assinatura</b> é de <b>' + fmtBRL(f.subMensal) + '/barco/mês</b> — total <b>' + fmtBRL(planoValor('mensal')) + '/mês</b> ou <b>' + fmtBRL(planoValor('anual')) + '/ano</b>.</div>'
+          : isento()
           ? '<div class="invest-hint">🎁 <b>Implementação isenta</b> — você paga apenas a <b>assinatura</b> (mensal ou anual) no fechamento.</div>'
           : '<div class="invest-hint">O investimento tem <b>dois componentes</b> — a <b>implementação</b> (única) <b>+</b> a <b>assinatura</b> (mensal ou anual) — <b>pagos juntos, em um único PIX, no fechamento</b>.</div>') +
         '<div class="invest">' +
           '<div class="card"><div class="t">Implementação · pagamento único</div><div class="v">' + (isento() ? 'Isenta 🎁' : fmtBRL(p.valor)) + '</div><div class="d">' + (isento() ? 'Cortesia SAFEBOAT — kit e instalação' : 'Kit completo + instalação') + ' por equipe técnica SAFEBOAT em <b>até 30 dias</b> após o pagamento.</div></div>' +
           '<div class="plusmark">+</div>' +
-          '<div class="card plan" data-plano="mensal"><div class="mark"></div><div class="t">Assinatura mensal</div><div class="v">' + fmtBRL(PLANOS.mensal.valor) + '<small>/mês</small></div><div class="d">1ª mensalidade paga no fechamento. O período de uso só começa após a implementação.</div></div>' +
+          '<div class="card plan" data-plano="mensal"><div class="mark"></div><div class="t">Assinatura mensal</div><div class="v">' + fmtBRL(planoValor('mensal')) + '<small>/mês</small></div><div class="d">1ª mensalidade paga no fechamento. O período de uso só começa após a implementação.</div></div>' +
           '<div class="oumark">OU</div>' +
-          '<div class="card plan" data-plano="anual"><div class="badge">' + PLANOS.anual.destaque + '</div><div class="mark"></div><div class="t">Assinatura anual</div><div class="v">' + fmtBRL(PLANOS.anual.valor) + '<small>/ano</small></div><div class="d">Equivale a ' + fmtBRL(PLANOS.anual.valor / 12) + '/mês. O período anual só começa após a implementação.</div></div>' +
+          '<div class="card plan" data-plano="anual"><div class="badge">' + PLANOS.anual.destaque + '</div><div class="mark"></div><div class="t">Assinatura anual</div><div class="v">' + fmtBRL(planoValor('anual')) + '<small>/ano</small></div><div class="d">Equivale a ' + fmtBRL(planoValor('anual') / 12) + '/mês. O período anual só começa após a implementação.</div></div>' +
         '</div></section>'))) +
     '<section id="secAceite"></section>' +
     '</main>' +
@@ -337,7 +357,7 @@ function renderAceite() {
       '<div class="okbox">✅<div class="big">Proposta aceita!</div>' +
       '<div style="margin-top:6px;color:#3A3F4E;font-size:13.5px">Aceita por <b>' + esc(p.aceite_nome || p.cliente) + '</b>' +
       (p.aceite_at ? ' em ' + fmtData(String(p.aceite_at).slice(0, 10)) : '') +
-      (p.plano && PLANOS[p.plano] ? ' · Plano ' + PLANOS[p.plano].label + ' (' + fmtBRL(PLANOS[p.plano].valor) + PLANOS[p.plano].sufixo + ')' : '') + '</div>' +
+      (p.plano && PLANOS[p.plano] ? ' · Plano ' + PLANOS[p.plano].label + ' (' + fmtBRL(planoValor(p.plano)) + PLANOS[p.plano].sufixo + ')' : '') + '</div>' +
       '<div style="margin-top:4px;font-size:12.5px;color:#4E5666">Contrato: <a href="' + termosUrl + '" target="_blank" style="color:#2264BE;font-weight:700">termos de uso aceitos</a></div>' +
       '<a href="contrato.html?p=' + ref.n + '-' + ref.t + '" target="_blank" style="display:inline-block;margin-top:14px;background:#2D324B;color:#fff;text-decoration:none;border-radius:10px;padding:11px 20px;font-size:13.5px;font-weight:700">📜 Ver contrato assinado (PDF)</a></div>' +
       pagamentoHTML();
@@ -371,7 +391,7 @@ function pagamentoHTML() {
   const cab = renov ? 'renovação da assinatura' : (upg ? 'implementação do upgrade' : (isento() ? 'assinatura (implementação isenta)' : 'implementação + assinatura'));
   const resumo = renov
     ? '<div style="display:inline-block;text-align:left;margin:6px auto 2px;font-size:13px;color:#3A3F4E">' +
-        (plano ? '<div>Renovação ' + plano.label.toLowerCase() + (p.plano === 'anual' ? ' (12 meses)' : '') + ' <b style="float:right;margin-left:26px">' + fmtBRL(plano.valor) + '</b></div>' : '') +
+        (plano ? '<div>Renovação ' + plano.label.toLowerCase() + (p.plano === 'anual' ? ' (12 meses)' : '') + ' <b style="float:right;margin-left:26px">' + fmtBRL(planoValor(p.plano)) + '</b></div>' : '') +
         '<div style="border-top:1px solid #E3E5EB;margin-top:6px;padding-top:6px;font-weight:800;color:#2D324B">Total <span style="float:right;margin-left:26px;font-size:22px">' + fmtBRL(total) + '</span></div>' +
       '</div>'
     : upg
@@ -382,7 +402,7 @@ function pagamentoHTML() {
       '</div>'
     : '<div style="display:inline-block;text-align:left;margin:6px auto 2px;font-size:13px;color:#3A3F4E">' +
         '<div>Implementação <b style="float:right;margin-left:26px">' + (isento() ? 'Isenta 🎁' : fmtBRL(p.valor)) + '</b></div>' +
-        (plano ? '<div>Assinatura ' + plano.label.toLowerCase() + (p.plano === 'anual' ? ' (anuidade integral)' : ' (1ª mensalidade)') + ' <b style="float:right;margin-left:26px">' + fmtBRL(plano.valor) + '</b></div>' : '') +
+        (plano ? '<div>Assinatura ' + plano.label.toLowerCase() + (p.plano === 'anual' ? ' (anuidade integral)' : ' (1ª mensalidade)') + ' <b style="float:right;margin-left:26px">' + fmtBRL(planoValor(p.plano)) + '</b></div>' : '') +
         '<div style="border-top:1px solid #E3E5EB;margin-top:6px;padding-top:6px;font-weight:800;color:#2D324B">Total <span style="float:right;margin-left:26px;font-size:22px">' + fmtBRL(total) + '</span></div>' +
       '</div>';
   const avisos = renov
