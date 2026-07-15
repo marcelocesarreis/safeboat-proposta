@@ -8,6 +8,7 @@
 <title>Proposta Comercial · SAFEBOAT</title>
 <link rel="icon" type="image/png" href="img/logo-circulo.png">
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root { color-scheme: light; }
@@ -204,6 +205,40 @@ let ref = null;
 let planoSel = null;
 let pagSel = 'pix';
 
+/* Auth social (Google/Apple) — captura e-mail VERIFICADO e cria o cadastro.
+   Depende dos provedores habilitados no Supabase (Authentication → Providers). */
+const sbAuth = (window.supabase && window.supabase.createClient)
+  ? window.supabase.createClient(SUPA_URL, SUPA_KEY, { auth: { persistSession: true, detectSessionInUrl: true, flowType: 'implicit' } })
+  : null;
+let authUser = null; // { email, nome, provedor } quando o cliente entra com Google/Apple
+
+async function loginSocial(provedor) {
+  if (!sbAuth) { alert('Login social indisponível neste navegador. Use o e-mail abaixo.'); return; }
+  const { error } = await sbAuth.auth.signInWithOAuth({
+    provider: provedor,
+    options: { redirectTo: location.origin + location.pathname + '?p=' + ref.n + '-' + ref.t },
+  });
+  if (error) {
+    alert('Login com ' + (provedor === 'google' ? 'Google' : 'Apple') + ' ainda não está ativado. Preencha o e-mail manualmente abaixo por enquanto.');
+  }
+}
+
+async function detectarSessaoSocial() {
+  if (!sbAuth) return;
+  try {
+    const { data: { session } } = await sbAuth.auth.getSession();
+    if (session && session.user) {
+      const u = session.user;
+      const meta = u.user_metadata || {};
+      authUser = {
+        email: (u.email || '').toLowerCase(),
+        nome: meta.full_name || meta.name || '',
+        provedor: (u.app_metadata && u.app_metadata.provider) || 'social',
+      };
+    }
+  } catch (e) { authUser = null; }
+}
+
 async function main() {
   ref = parseRef();
   const app = document.getElementById('app');
@@ -218,6 +253,7 @@ async function main() {
   }
   planoSel = p.plano || null;
   pagSel = p.pagamento || 'pix';
+  await detectarSessaoSocial();
   render();
 }
 
@@ -365,11 +401,23 @@ function renderAceite() {
     wirePagamento();
     return;
   }
+  const gIcon = '<svg width="17" height="17" viewBox="0 0 48 48" style="flex:none"><path fill="#4285F4" d="M45 24c0-1.6-.1-2.8-.4-4H24v7.6h12c-.2 2-1.6 5-4.6 7l7 5.4C42.8 42 45 33.9 45 24z"/><path fill="#34A853" d="M24 46c6.5 0 11.9-2.1 15.9-5.8l-7-5.4c-2 1.3-4.5 2.1-8.9 2.1-6.3 0-11.6-4.2-13.5-9.9l-7.2 5.6C7.8 40.5 15.3 46 24 46z"/><path fill="#FBBC05" d="M10.5 27c-.5-1.5-.8-3.1-.8-4.9s.3-3.4.8-4.9l-7.2-5.6C1.9 15 1 19.4 1 22.1s.9 7.1 2.3 10.5l7.2-5.6z"/><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.2-6.2C35.9 3.3 30.5 1 24 1 15.3 1 7.8 6.5 4.3 14.6l7.2 5.6C13.4 13.7 18.7 9.5 24 9.5z"/></svg>';
+  const provNome = authUser ? (authUser.provedor === 'apple' ? 'Apple' : 'Google') : '';
   sec.innerHTML = '<h2>Contratação</h2><div class="aceite">' +
     '<div style="font-size:14px;color:#3A3F4E">Escolha acima o plano de assinatura, confira os termos e finalize — leva menos de um minuto.</div>' +
-    '<label class="f">Nome completo do responsável *</label><input type="text" id="aNome" placeholder="Seu nome completo">' +
+    (authUser
+      ? '<div style="margin:14px 0;padding:12px 14px;background:#E9F7EF;border:1px solid #BFE5CE;border-radius:10px;font-size:13px;color:#0B6B4D">✓ Você entrou com <b>' + esc(provNome) + '</b> — e-mail verificado: <b>' + esc(authUser.email) + '</b></div>'
+      : '<div style="margin:14px 0">' +
+          '<div style="font-size:13px;color:#3A3F4E;margin-bottom:8px">Entre com sua conta para agilizar — e-mail verificado e acesso ao app:</div>' +
+          '<div style="display:flex;gap:10px;flex-wrap:wrap">' +
+            '<button type="button" id="socGoogle" style="flex:1;min-width:150px;display:flex;align-items:center;justify-content:center;gap:9px;padding:11px;border:1px solid #DDDFE6;border-radius:10px;background:#fff;font-weight:700;font-size:13.5px;cursor:pointer;color:#3A3F4E">' + gIcon + ' Continuar com Google</button>' +
+            '<button type="button" id="socApple" style="flex:1;min-width:150px;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;border:1px solid #1A1F2B;border-radius:10px;background:#1A1F2B;font-weight:700;font-size:13.5px;cursor:pointer;color:#fff"> Continuar com Apple</button>' +
+          '</div>' +
+          '<div style="text-align:center;color:#8A8F9C;font-size:12px;margin:12px 0 2px">ou preencha manualmente</div>' +
+        '</div>') +
+    '<label class="f">Nome completo do responsável *</label><input type="text" id="aNome" placeholder="Seu nome completo" value="' + esc(authUser && authUser.nome || '') + '">' +
     '<label class="f">' + (p.segmento === 'B2B' ? 'CNPJ *' : 'CPF *') + '</label><input type="text" id="aDoc" placeholder="' + (p.segmento === 'B2B' ? '00.000.000/0000-00' : '000.000.000-00') + '">' +
-    '<label class="f">E-mail *</label><input type="email" id="aEmail" inputmode="email" placeholder="seu@email.com"><div style="font-size:11.5px;color:#8A8F9C;margin-top:4px">Enviaremos o contrato assinado para este e-mail, que também será seu acesso ao app SAFEBOAT.</div>' +
+    '<label class="f">E-mail *</label><input type="email" id="aEmail" inputmode="email" placeholder="seu@email.com" value="' + esc(authUser && authUser.email || '') + '"' + (authUser ? ' readonly style="background:#F0F6FE"' : '') + '><div style="font-size:11.5px;color:#8A8F9C;margin-top:4px">' + (authUser ? 'E-mail verificado pela sua conta ' + esc(provNome) + ' — mais segurança na assinatura.' : 'Enviaremos o contrato assinado para este e-mail, que também será seu acesso ao app SAFEBOAT.') + '</div>' +
     '<div class="check"><input type="checkbox" id="aTermos"><span>Li e aceito os <a href="' + termosUrl + '" target="_blank">Termos de Uso e o Contrato de Prestação de Serviços</a> da SAFEBOAT (' + (p.segmento === 'B2B' ? 'empresas' : 'pessoa física') + ').</span></div>' +
     '<div class="pay-opts">' +
       '<div class="pay-opt' + (pagSel === 'pix' ? ' sel' : '') + '" data-pag="pix">💠 PIX (QR Code)</div>' +
@@ -382,6 +430,8 @@ function renderAceite() {
     pagSel = el.dataset.pag;
     document.querySelectorAll('.pay-opt').forEach((x) => x.classList.toggle('sel', x === el));
   }));
+  const bg = document.getElementById('socGoogle'); if (bg) bg.addEventListener('click', () => loginSocial('google'));
+  const ba = document.getElementById('socApple'); if (ba) ba.addEventListener('click', () => loginSocial('apple'));
   document.getElementById('btnAceitar').addEventListener('click', aceitarProposta);
 }
 
@@ -465,7 +515,7 @@ async function evidenciaContrato() {
 async function aceitarProposta() {
   const nome = document.getElementById('aNome').value.trim();
   const doc = document.getElementById('aDoc').value.trim();
-  const email = document.getElementById('aEmail').value.trim().toLowerCase();
+  const email = (authUser ? authUser.email : document.getElementById('aEmail').value.trim().toLowerCase());
   if (!planoSel) { alert(isUpgrade() ? 'Confirme qual é o seu plano atual (mensal ou anual) na seção Investimento.' : 'Escolha o plano de assinatura (mensal ou anual) na seção Investimento.'); return; }
   if (!nome || !doc) { alert('Preencha seu nome completo e ' + (p.segmento === 'B2B' ? 'CNPJ' : 'CPF') + '.'); return; }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { alert('Informe um e-mail válido — ele será seu acesso ao app e receberá o contrato.'); return; }
