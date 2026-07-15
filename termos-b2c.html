@@ -62,6 +62,15 @@
 <p>3.4. <b>Reajuste.</b> Os valores serão reajustados a cada 12 (doze) meses, contados do aceite, pela variação acumulada do IPCA/IBGE ou índice que o substitua; em caso de variação negativa, mantêm-se os valores vigentes.</p>
 <p>3.5. <b>Atraso.</b> O inadimplemento sujeita a CONTRATANTE a multa de 2% (dois por cento), juros de 1% (um por cento) ao mês e correção monetária pelo IGP-M/FGV até o efetivo pagamento, sem prejuízo da suspensão do serviço após comunicação.</p>
 
+<div class="prot" id="clCamera" style="display:none">
+<h2>3.6. Câmeras de segurança (opcional)</h2>
+<p>3.6.1. A CONTRATANTE optou pela inclusão de <span class="mf" data-mf="camQtd">—</span> câmera(s) de segurança Wi-Fi Full HD, que integram o kit cedido em comodato (Anexo I) e são instaladas em conjunto com o sistema SAFEBOAT.</p>
+<p>3.6.2. <b>Implantação das câmeras.</b> Pela implantação das câmeras, a CONTRATANTE pagará o valor adicional de <span class="mf" data-mf="camImplVal">R$ ____</span>, em parcela única no ato do aceite, somado à taxa de implantação da Cláusula 3.1 e já compreendido no total pago no fechamento.</p>
+<p>3.6.3. <b>Acréscimo na assinatura.</b> A assinatura sofre acréscimo de R$ 29,90 (vinte e nove reais e noventa centavos) por câmera, totalizando <span class="mf" data-mf="camMensalVal">R$ ____</span>, somado ao valor da Cláusula 3.2 e sujeito ao reajuste da Cláusula 3.4.</p>
+<p>3.6.4. <b>Requisito de conectividade.</b> O funcionamento das câmeras depende de conexão de internet a bordo, fornecida por sistema Starlink (ou equivalente) de titularidade e responsabilidade exclusiva da CONTRATANTE. Na ausência, insuficiência ou indisponibilidade dessa conexão, as câmeras não transmitirão imagens, o que não configura inadimplemento, defeito ou falha do serviço prestado pela CONTRATADA.</p>
+<p>3.6.5. <b>Consumo e responsabilidade.</b> O volume de dados e o consumo de energia das câmeras variam conforme a demanda de uso e são de conta e responsabilidade exclusiva da CONTRATANTE. A CONTRATADA não responde por franquia, custos, limites, latência, interrupção ou indisponibilidade do serviço de internet contratado pela CONTRATANTE, nem por eventual perda ou não gravação de imagens dela decorrente.</p>
+</div>
+
 <h2>4. MANUTENÇÃO E SUPORTE TÉCNICO</h2>
 <p>4.1. A CONTRATADA prestará suporte técnico para manter o sistema em condições de funcionamento, esclarecer dúvidas de operação e corrigir erros de software, conforme os manuais e especificações técnicas.</p>
 <p>4.2. É dever da CONTRATANTE reportar à CONTRATADA qualquer falha assim que identificada.</p>
@@ -188,6 +197,7 @@ function dataExtenso(iso) {
 }
 function isUpg(kit) { return String(kit || '').split(' + ').includes('#UPGRADE'); }
 function isRenov(kit) { return String(kit || '').split(' + ').includes('#RENOVACAO'); }
+function camsKit(kit) { const t = String(kit || '').split(' + ').find((k) => k.indexOf('#CAM=') === 0); return t ? Math.max(0, parseInt(t.slice(5), 10) || 0) : 0; }
 
 (async () => {
   const ref = parseRef();
@@ -224,6 +234,15 @@ function isRenov(kit) { return String(kit || '').split(' + ').includes('#RENOVAC
   } else {
     set('planoLabel', 'a selecionar no aceite (mensal ou anual)');
     set('valorAssin', 'R$ 249/mês ou R$ 2.490/ano');
+  }
+  // Câmeras opcionais (apenas instalação nova)
+  const nc = camsKit(p.kit);
+  if (nc > 0 && !renov && !upg) {
+    const box = document.getElementById('clCamera');
+    if (box) box.style.display = '';
+    set('camQtd', String(nc));
+    set('camImplVal', fmtBRL(Math.round(nc * 411.24 * 1.15 * 100) / 100));
+    set('camMensalVal', fmtBRL(nc * 29.90) + '/mês');
   }
   set('dataExtenso', dataExtenso(p.aceite_at));
 })();
