@@ -241,7 +241,7 @@ function camsKit(kit) { const t = String(kit || '').split(' + ').find((k) => k.i
     const box = document.getElementById('clCamera');
     if (box) box.style.display = '';
     set('camQtd', String(nc));
-    set('camImplVal', fmtBRL(Math.round(nc * 411.24 * 1.15 * 100) / 100));
+    set('camImplVal', fmtBRL(nc * (Math.round(411.24 * 1.15 * 100) / 100)));
     set('camMensalVal', fmtBRL(nc * 29.90) + '/mês');
   }
   set('dataExtenso', dataExtenso(p.aceite_at));
