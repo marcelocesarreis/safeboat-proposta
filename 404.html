@@ -162,9 +162,10 @@ const KIT_IMGS = {
 };
 
 /* Câmera de segurança opcional (Intelbras iM5 SC Wi-Fi Full HD).
-   Implementação = preço unitário + 15%; mensalidade = +R$29,90 por câmera.
+   Implementação = preço unitário + 15%. Assinatura: +R$29,90/mês por câmera ou
+   +R$299,00/ano por câmera (mesma lógica do plano anual — paga 10 meses).
    Requer Starlink a bordo; consumo de dados/energia por conta do usuário. */
-const CAMERA = { nome: 'Câmera Wi-Fi Full HD', precoUnit: 411.24, markup: 0.15, mensal: 29.90, img: 'img/eq-camera.png' };
+const CAMERA = { nome: 'Câmera Wi-Fi Full HD', precoUnit: 411.24, markup: 0.15, mensal: 29.90, anual: 299.00, img: 'img/eq-camera.png' };
 const camUnitImpl = () => Math.round(CAMERA.precoUnit * (1 + CAMERA.markup) * 100) / 100;
 
 const esc = (s) => String(s || '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
@@ -290,7 +291,7 @@ function cams() {
   return t ? Math.max(0, parseInt(t.slice(5), 10) || 0) : 0;
 }
 const camImpl = () => cams() * camUnitImpl();              // acréscimo na implementação
-const camMensal = (plano) => cams() * CAMERA.mensal * (plano === 'anual' ? 12 : 1); // acréscimo na assinatura
+const camAssin = (plano) => cams() * (plano === 'anual' ? CAMERA.anual : CAMERA.mensal); // acréscimo na assinatura (anual = 10 meses)
 const implValor = () => Number(p.valor) + camImpl();       // implementação total (sistema + câmeras)
 const implIsento = () => implValor() === 0;
 const REDE_NOME = { nenhuma: 'Sem rede NMEA/CAN', nmea: 'Rede NMEA', can: 'Rede CAN (com conversor)' };
@@ -302,7 +303,7 @@ function planoValor(plano) {
 }
 const totalCom = (plano) => isUpgrade()
   ? Number(p.valor)
-  : (isRenov() ? planoValor(plano) : implValor() + planoValor(plano) + camMensal(plano));
+  : (isRenov() ? planoValor(plano) : implValor() + planoValor(plano) + camAssin(plano));
 
 function pubKitCard(item) {
   const img = KIT_IMGS[item];
@@ -332,7 +333,8 @@ function camSecaoHTML() {
         '<div class="cam-req">🛰 <b>Requer Starlink instalada a bordo.</b> A câmera transmite vídeo pela internet do barco. O <b>consumo de dados e energia é conforme a demanda e de responsabilidade do usuário</b> — a SAFEBOAT não se responsabiliza pela franquia/consumo do serviço de internet.</div>' +
         '<div class="cam-preco">' +
           '<div><span>Implementação</span><b>' + n + ' × ' + fmtBRL(camUnitImpl()) + ' = ' + fmtBRL(camImpl()) + '</b></div>' +
-          '<div><span>Mensalidade</span><b>+ ' + fmtBRL(CAMERA.mensal) + ' por câmera' + (n > 1 ? ' (' + n + '× = ' + fmtBRL(n * CAMERA.mensal) + '/mês)' : '') + '</b></div>' +
+          '<div><span>Assinatura mensal</span><b>+ ' + fmtBRL(CAMERA.mensal) + ' por câmera/mês' + (n > 1 ? ' (' + n + '× = ' + fmtBRL(n * CAMERA.mensal) + '/mês)' : '') + '</b></div>' +
+          '<div><span>Assinatura anual</span><b>+ ' + fmtBRL(CAMERA.anual) + ' por câmera/ano' + (n > 1 ? ' (' + n + '× = ' + fmtBRL(n * CAMERA.anual) + '/ano)' : '') + ' <span style="font-weight:600;color:#0B6B4D">· paga 10 meses</span></b></div>' +
         '</div>' +
       '</div>' +
     '</div></section>';
@@ -344,7 +346,7 @@ const isento = () => !Number(p.valor);
 function camAssinNota(plano) {
   const n = cams();
   if (!n) return '';
-  return '<div style="margin-top:7px;color:#2264BE;font-weight:700">+ ' + fmtBRL(camMensal(plano)) + (plano === 'anual' ? '/ano' : '/mês') + ' · ' + n + ' câmera' + (n > 1 ? 's' : '') + '</div>';
+  return '<div style="margin-top:7px;color:#2264BE;font-weight:700">+ ' + fmtBRL(camAssin(plano)) + (plano === 'anual' ? '/ano' : '/mês') + ' · ' + n + ' câmera' + (n > 1 ? 's' : '') + '</div>';
 }
 
 function render() {
@@ -517,7 +519,7 @@ function pagamentoHTML() {
         '<div>Implementação' + (cams() ? ' do sistema' : '') + ' <b style="float:right;margin-left:26px">' + (isento() ? 'Isenta 🎁' : fmtBRL(p.valor)) + '</b></div>' +
         (cams() ? '<div>Câmera' + (cams() > 1 ? 's' : '') + ' (' + cams() + ') · implementação <b style="float:right;margin-left:26px">' + fmtBRL(camImpl()) + '</b></div>' : '') +
         (plano ? '<div>Assinatura ' + plano.label.toLowerCase() + (p.plano === 'anual' ? ' (anuidade integral)' : ' (1ª mensalidade)') + ' <b style="float:right;margin-left:26px">' + fmtBRL(planoValor(p.plano)) + '</b></div>' : '') +
-        (cams() && plano ? '<div>Câmera' + (cams() > 1 ? 's' : '') + ' (' + cams() + ') · ' + (p.plano === 'anual' ? 'anuidade' : 'mensalidade') + ' <b style="float:right;margin-left:26px">' + fmtBRL(camMensal(p.plano)) + '</b></div>' : '') +
+        (cams() && plano ? '<div>Câmera' + (cams() > 1 ? 's' : '') + ' (' + cams() + ') · ' + (p.plano === 'anual' ? 'anuidade' : 'mensalidade') + ' <b style="float:right;margin-left:26px">' + fmtBRL(camAssin(p.plano)) + '</b></div>' : '') +
         '<div style="border-top:1px solid #E3E5EB;margin-top:6px;padding-top:6px;font-weight:800;color:#2D324B">Total <span style="float:right;margin-left:26px;font-size:22px">' + fmtBRL(total) + '</span></div>' +
       '</div>';
   const avisos = renov
