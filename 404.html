@@ -35,7 +35,7 @@
   .eqcard img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 10px; background: #2D324B; border: 1px solid #E3E5EB; }
   .eqcard .icon { width: 100%; aspect-ratio: 1/1; border-radius: 10px; background: #2D324B; color: #fff; font-size: 44px; display: flex; align-items: center; justify-content: center; }
   .eqcard b { display: block; margin-top: 10px; font-size: 12.5px; color: #2D324B; }
-  .eqcard img[src$="eq-camera.png"] { background: #fff; object-fit: contain; padding: 8px; }
+  .eqcard img[src$="eq-camera.png"], .eqcard img[src$="eq-sirene.svg"] { background: #fff; object-fit: contain; padding: 8px; }
   .cam-wrap { display: grid; grid-template-columns: 200px 1fr; gap: 20px; align-items: start; }
   .cam-img { align-self: start; }
   .cam-tx p { margin: 2px 0 12px; font-size: 14px; color: #3A3F4E; line-height: 1.6; }
@@ -147,7 +147,7 @@ const REDES = {
     obs: 'Se a embarcação não possuir rede NMEA, criaremos uma e converteremos os dados CAN — lendo todos os dados de motor. Se já possuir, converteremos os dados dos motores e os conectaremos à rede NMEA existente, lendo também tudo o mais que estiver a bordo.',
   },
 };
-const MONITORAVEIS_BASE = ['Rastreio','Velocidade','Acionamentos de bomba de porão','Alarme de alagamento','Alarme detector de fumaça','Tensão de todos os bancos de bateria da embarcação','Posição da chave geral','Temperatura da casa de máquinas','Umidade na casa de máquinas'];
+const MONITORAVEIS_BASE = ['Rastreio','Velocidade','Acionamentos de bomba de porão','Alarme de alagamento','Alarme detector de fumaça','Sirene de alarme sonoro a bordo — dispara em alta temperatura, alagamento ou detecção de fumaça','Tensão de todos os bancos de bateria da embarcação','Posição da chave geral','Temperatura da casa de máquinas','Umidade na casa de máquinas'];
 const MONITORAVEIS_MOTOR = ['Horímetro','Rotação','Pressão de óleo','Temperatura de óleo','Temperatura de coolant','Pressão de combustível','Pressão de turbina','Consumo instantâneo e por trajeto'];
 const MONITORAVEIS_EXTRA = ['Profundidade','Níveis de tanques de combustível e água'];
 const KIT_IMGS = {
@@ -158,6 +158,7 @@ const KIT_IMGS = {
   'Cabo NMEA': 'img/eq-cabo-nmea.jpg',
   'T NMEA': 'img/eq-t-nmea.jpg',
   'Sensor de consumo de bateria': 'img/eq-bateria.jpg',
+  'Sirene de alarme': 'img/eq-sirene.svg',
   'Câmera Wi-Fi Full HD': 'img/eq-camera.png',
 };
 
@@ -305,9 +306,13 @@ function planoValor(plano) {
   if (f) return f.boats * (plano === 'anual' ? f.subAnual : f.subMensal);
   return PLANOS[plano] ? PLANOS[plano].valor : 0;
 }
+/* Assinatura TOTAL do plano — já com a mensalidade/anuidade das câmeras embutida.
+   O cliente vê um número só (ex.: 249 + 29,90 = 278,90); o detalhe por câmera
+   fica na seção da câmera, para o total não ficar fragmentado. */
+const assinValor = (plano) => planoValor(plano) + camAssin(plano);
 const totalCom = (plano) => isUpgrade()
   ? Number(p.valor)
-  : (isRenov() ? planoValor(plano) : implValor() + planoValor(plano) + camAssin(plano));
+  : (isRenov() ? planoValor(plano) : implValor() + assinValor(plano));
 
 function pubKitCard(item) {
   const img = KIT_IMGS[item];
@@ -350,7 +355,8 @@ const isento = () => !Number(p.valor);
 function camAssinNota(plano) {
   const n = cams();
   if (!n) return '';
-  return '<div style="margin-top:7px;color:#2264BE;font-weight:700">+ ' + fmtBRL(camAssin(plano)) + (plano === 'anual' ? '/ano' : '/mês') + ' · ' + n + ' câmera' + (n > 1 ? 's' : '') + '</div>';
+  return '<div style="margin-top:7px;color:#2264BE;font-weight:700">Já inclui ' + n + ' câmera' + (n > 1 ? 's' : '') +
+    ' (' + fmtBRL(planoValor(plano)) + ' + ' + fmtBRL(camAssin(plano)) + ')</div>';
 }
 
 function render() {
@@ -423,9 +429,9 @@ function render() {
         '<div class="invest">' +
           '<div class="card"><div class="t">Implementação · pagamento único</div><div class="v">' + (implIsento() ? 'Isenta 🎁' : fmtBRL(implValor())) + '</div><div class="d">' + (implIsento() ? 'Cortesia SAFEBOAT — kit e instalação' : 'Kit completo + instalação') + ' por equipe técnica SAFEBOAT em <b>até 30 dias</b> após o pagamento.' + (cams() ? ' <b style="color:#2264BE">Inclui ' + cams() + ' câmera' + (cams() > 1 ? 's' : '') + ' (' + fmtBRL(camImpl()) + ').</b>' : '') + '</div></div>' +
           '<div class="plusmark">+</div>' +
-          '<div class="card plan" data-plano="mensal"><div class="mark"></div><div class="t">Assinatura mensal</div><div class="v">' + fmtBRL(planoValor('mensal')) + '<small>/mês</small></div><div class="d">1ª mensalidade paga no fechamento. O período de uso só começa após a implementação.</div>' + camAssinNota('mensal') + '</div>' +
+          '<div class="card plan" data-plano="mensal"><div class="mark"></div><div class="t">Assinatura mensal</div><div class="v">' + fmtBRL(assinValor('mensal')) + '<small>/mês</small></div><div class="d">1ª mensalidade paga no fechamento. O período de uso só começa após a implementação.</div>' + camAssinNota('mensal') + '</div>' +
           '<div class="oumark">OU</div>' +
-          '<div class="card plan" data-plano="anual"><div class="badge">' + PLANOS.anual.destaque + '</div><div class="mark"></div><div class="t">Assinatura anual</div><div class="v">' + fmtBRL(planoValor('anual')) + '<small>/ano</small></div><div class="d">Equivale a ' + fmtBRL(planoValor('anual') / 12) + '/mês. O período anual só começa após a implementação.</div>' + camAssinNota('anual') + '</div>' +
+          '<div class="card plan" data-plano="anual"><div class="badge">' + PLANOS.anual.destaque + '</div><div class="mark"></div><div class="t">Assinatura anual</div><div class="v">' + fmtBRL(assinValor('anual')) + '<small>/ano</small></div><div class="d">Equivale a ' + fmtBRL(assinValor('anual') / 12) + '/mês. O período anual só começa após a implementação.</div>' + camAssinNota('anual') + '</div>' +
         '</div></section>'))) +
     '<section id="secAceite"></section>' +
     '</main>' +
@@ -449,7 +455,7 @@ function ctaLabel() {
   if (isRenov()) return planoSel ? 'Renovar assinatura — pagar ' + fmtBRL(totalCom(planoSel)) + (planoSel === 'anual' ? ' (anuidade)' : ' (mensalidade)') : 'Escolha mensal ou anual acima';
   if (!planoSel) return isUpgrade() ? 'Confirme seu plano atual acima' : 'Aceitar termos e contratar';
   if (isUpgrade()) return 'Aceitar e pagar upgrade — ' + fmtBRL(totalCom(planoSel)) + ' (implementação do upgrade)';
-  return 'Aceitar termos e contratar — pagar ' + fmtBRL(totalCom(planoSel)) + ' (' + (isento() ? '' : 'implementação + ') + (planoSel === 'anual' ? 'anuidade' : '1ª mensalidade') + ')';
+  return 'Aceitar termos e contratar — pagar ' + fmtBRL(totalCom(planoSel)) + ' (' + (implIsento() ? '' : 'implementação + ') + (planoSel === 'anual' ? 'anuidade' : '1ª mensalidade') + ')';
 }
 
 function renderAceite() {
@@ -492,7 +498,7 @@ function renderAceite() {
       '<div class="pay-opt' + (pagSel === 'cartao' ? ' sel' : '') + '" data-pag="cartao">💳 Cartão de crédito</div>' +
     '</div>' +
     '<button class="cta" id="btnAceitar">' + ctaLabel() + '</button>' +
-    '<div style="margin-top:10px;font-size:12px;color:#8A8F9C;text-align:center">' + (isRenov() ? 'O pagamento renova sua assinatura SAFEBOAT pelo período escolhido (mensal ou anual). Não há alteração no equipamento nem nova instalação — o monitoramento continua ativo.' : (isUpgrade() ? 'O pagamento no fechamento é apenas a <b>implementação do upgrade</b> — sua assinatura atual é mantida, sem nova cobrança. A leitura da rede NMEA passa a valer <b>após a instalação</b> · instalação em até <b>30 dias</b> a partir do pagamento.' : ((isento() ? 'O pagamento no fechamento é apenas da assinatura escolhida (mensalidade ou anuidade integral) — a implementação é cortesia.' : 'O pagamento no fechamento inclui a implementação <b>+</b> a assinatura escolhida (mensalidade ou anuidade integral).') + ' O período de uso passa a valer <b>somente após a implementação</b> · instalação em até <b>30 dias</b> a partir do pagamento.'))) + '</div>' +
+    '<div style="margin-top:10px;font-size:12px;color:#8A8F9C;text-align:center">' + (isRenov() ? 'O pagamento renova sua assinatura SAFEBOAT pelo período escolhido (mensal ou anual). Não há alteração no equipamento nem nova instalação — o monitoramento continua ativo.' : (isUpgrade() ? 'O pagamento no fechamento é apenas a <b>implementação do upgrade</b> — sua assinatura atual é mantida, sem nova cobrança. A leitura da rede NMEA passa a valer <b>após a instalação</b> · instalação em até <b>30 dias</b> a partir do pagamento.' : ((implIsento() ? 'O pagamento no fechamento é apenas da assinatura escolhida (mensalidade ou anuidade integral) — a implementação é cortesia.' : 'O pagamento no fechamento inclui a implementação <b>+</b> a assinatura escolhida (mensalidade ou anuidade integral).') + ' O período de uso passa a valer <b>somente após a implementação</b> · instalação em até <b>30 dias</b> a partir do pagamento.'))) + '</div>' +
   '</div>';
   document.querySelectorAll('.pay-opt').forEach((el) => el.addEventListener('click', () => {
     pagSel = el.dataset.pag;
@@ -508,7 +514,7 @@ function pagamentoHTML() {
   const total = totalCom(p.plano);
   const upg = isUpgrade();
   const renov = isRenov();
-  const cab = renov ? 'renovação da assinatura' : (upg ? 'implementação do upgrade' : (isento() ? 'assinatura (implementação isenta)' : 'implementação + assinatura'));
+  const cab = renov ? 'renovação da assinatura' : (upg ? 'implementação do upgrade' : (implIsento() ? 'assinatura (implementação isenta)' : 'implementação + assinatura'));
   const resumo = renov
     ? '<div style="display:inline-block;text-align:left;margin:6px auto 2px;font-size:13px;color:#3A3F4E">' +
         (plano ? '<div>Renovação ' + plano.label.toLowerCase() + (p.plano === 'anual' ? ' (12 meses)' : '') + ' <b style="float:right;margin-left:26px">' + fmtBRL(planoValor(p.plano)) + '</b></div>' : '') +
@@ -521,10 +527,10 @@ function pagamentoHTML() {
         '<div style="border-top:1px solid #E3E5EB;margin-top:6px;padding-top:6px;font-weight:800;color:#2D324B">Total <span style="float:right;margin-left:26px;font-size:22px">' + fmtBRL(total) + '</span></div>' +
       '</div>'
     : '<div style="display:inline-block;text-align:left;margin:6px auto 2px;font-size:13px;color:#3A3F4E">' +
-        '<div>Implementação' + (cams() ? ' do sistema' : '') + ' <b style="float:right;margin-left:26px">' + (isento() ? 'Isenta 🎁' : fmtBRL(p.valor)) + '</b></div>' +
-        (cams() ? '<div>Câmera' + (cams() > 1 ? 's' : '') + ' (' + cams() + ') · implementação <b style="float:right;margin-left:26px">' + fmtBRL(camImpl()) + '</b></div>' : '') +
-        (plano ? '<div>Assinatura ' + plano.label.toLowerCase() + (p.plano === 'anual' ? ' (anuidade integral)' : ' (1ª mensalidade)') + ' <b style="float:right;margin-left:26px">' + fmtBRL(planoValor(p.plano)) + '</b></div>' : '') +
-        (cams() && plano ? '<div>Câmera' + (cams() > 1 ? 's' : '') + ' (' + cams() + ') · ' + (p.plano === 'anual' ? 'anuidade' : 'mensalidade') + ' <b style="float:right;margin-left:26px">' + fmtBRL(camAssin(p.plano)) + '</b></div>' : '') +
+        '<div>Implementação' + ' <b style="float:right;margin-left:26px">' + (implIsento() ? 'Isenta 🎁' : fmtBRL(implValor())) + '</b></div>' +
+        (cams() ? '<div style="font-size:11.5px;color:#8A8F9C;margin:-2px 0 5px">kit do sistema ' + fmtBRL(p.valor) + ' + ' + cams() + ' câmera' + (cams() > 1 ? 's' : '') + ' ' + fmtBRL(camImpl()) + '</div>' : '') +
+        (plano ? '<div>Assinatura ' + plano.label.toLowerCase() + (p.plano === 'anual' ? ' (anuidade integral)' : ' (1ª mensalidade)') + ' <b style="float:right;margin-left:26px">' + fmtBRL(assinValor(p.plano)) + '</b></div>' : '') +
+        (cams() && plano ? '<div style="font-size:11.5px;color:#8A8F9C;margin:-2px 0 5px">assinatura ' + fmtBRL(planoValor(p.plano)) + ' + ' + cams() + ' câmera' + (cams() > 1 ? 's' : '') + ' ' + fmtBRL(camAssin(p.plano)) + '</div>' : '') +
         '<div style="border-top:1px solid #E3E5EB;margin-top:6px;padding-top:6px;font-weight:800;color:#2D324B">Total <span style="float:right;margin-left:26px;font-size:22px">' + fmtBRL(total) + '</span></div>' +
       '</div>';
   const avisos = renov
@@ -546,7 +552,7 @@ function pagamentoHTML() {
       '<div class="copia" id="pixCopia"></div>' +
       '<button class="btnc" id="btnCopiaPix">📋 Copiar código PIX (copia e cola)</button>';
   } else {
-    inner = '<div style="font-size:15px;font-weight:700;color:#2D324B">Total a pagar (' + (isento() ? 'assinatura — implementação isenta' : 'implementação + assinatura') + '): ' + fmtBRL(total) + '</div>' +
+    inner = '<div style="font-size:15px;font-weight:700;color:#2D324B">Total a pagar (' + (implIsento() ? 'assinatura — implementação isenta' : 'implementação + assinatura') + '): ' + fmtBRL(total) + '</div>' +
       '<div style="margin-top:8px;font-size:13.5px;color:#4E5666">Nossa equipe entrará em contato pelo WhatsApp com os dados de pagamento.</div>';
   }
   return '<div class="paybox">' + inner + avisos + '</div>';
