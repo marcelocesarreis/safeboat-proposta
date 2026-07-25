@@ -228,6 +228,10 @@ let pagSel = 'pix';
 const sbAuth = (window.supabase && window.supabase.createClient)
   ? window.supabase.createClient(SUPA_URL, SUPA_KEY, { auth: { persistSession: true, detectSessionInUrl: true, flowType: 'implicit' } })
   : null;
+/* Login social temporariamente DESLIGADO (a pedido) — a sessão do Google ficava
+   persistida no navegador e reaparecia em toda proposta. Para reativar quando o
+   fluxo estiver validado, basta voltar para true. */
+const SOCIAL_LOGIN = false;
 let authUser = null; // { email, nome, provedor } quando o cliente entra com Google/Apple
 
 async function loginSocial(provedor) {
@@ -271,7 +275,7 @@ async function main() {
   }
   planoSel = p.plano || null;
   pagSel = p.pagamento || 'pix';
-  await detectarSessaoSocial();
+  if (SOCIAL_LOGIN) await detectarSessaoSocial();
   render();
 }
 
@@ -449,6 +453,7 @@ function ctaLabel() {
 }
 
 function renderAceite() {
+  if (!SOCIAL_LOGIN) authUser = null; // blindagem: com login social off, nunca usa sessão residual
   const termosUrl = (p.segmento === 'B2B' ? 'termos-b2b.html' : 'termos-b2c.html') + '?p=' + ref.n + '-' + ref.t;
   const sec = document.getElementById('secAceite');
   if (p.status === 'aceita') {
@@ -468,7 +473,7 @@ function renderAceite() {
   const provNome = authUser ? (authUser.provedor === 'apple' ? 'Apple' : 'Google') : '';
   sec.innerHTML = '<h2>Contratação</h2><div class="aceite">' +
     '<div style="font-size:14px;color:#3A3F4E">Escolha acima o plano de assinatura, confira os termos e finalize — leva menos de um minuto.</div>' +
-    (authUser
+    (!SOCIAL_LOGIN ? '' : (authUser
       ? '<div style="margin:14px 0;padding:12px 14px;background:#E9F7EF;border:1px solid #BFE5CE;border-radius:10px;font-size:13px;color:#0B6B4D">✓ Você entrou com <b>' + esc(provNome) + '</b> — e-mail verificado: <b>' + esc(authUser.email) + '</b></div>'
       : '<div style="margin:14px 0">' +
           '<div style="font-size:13px;color:#3A3F4E;margin-bottom:8px">Entre com sua conta para agilizar — e-mail verificado e acesso ao app:</div>' +
@@ -477,7 +482,7 @@ function renderAceite() {
             '<button type="button" id="socApple" style="flex:1;min-width:150px;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;border:1px solid #1A1F2B;border-radius:10px;background:#1A1F2B;font-weight:700;font-size:13.5px;cursor:pointer;color:#fff"> Continuar com Apple</button>' +
           '</div>' +
           '<div style="text-align:center;color:#8A8F9C;font-size:12px;margin:12px 0 2px">ou preencha manualmente</div>' +
-        '</div>') +
+        '</div>')) +
     '<label class="f">Nome completo do responsável *</label><input type="text" id="aNome" placeholder="Seu nome completo" value="' + esc(authUser && authUser.nome || '') + '">' +
     '<label class="f">' + (p.segmento === 'B2B' ? 'CNPJ *' : 'CPF *') + '</label><input type="text" id="aDoc" placeholder="' + (p.segmento === 'B2B' ? '00.000.000/0000-00' : '000.000.000-00') + '">' +
     '<label class="f">E-mail *</label><input type="email" id="aEmail" inputmode="email" placeholder="seu@email.com" value="' + esc(authUser && authUser.email || '') + '"' + (authUser ? ' readonly style="background:#F0F6FE"' : '') + '><div style="font-size:11.5px;color:#8A8F9C;margin-top:4px">' + (authUser ? 'E-mail verificado pela sua conta ' + esc(provNome) + ' — mais segurança na assinatura.' : 'Enviaremos o contrato assinado para este e-mail, que também será seu acesso ao app SAFEBOAT.') + '</div>' +
