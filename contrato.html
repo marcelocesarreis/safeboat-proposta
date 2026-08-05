@@ -113,14 +113,25 @@ async function main() {
   const docLabel = c.segmento === 'B2B' ? 'CNPJ' : 'CPF';
   const plano = c.plano === 'anual' ? 'Anual (R$ 2.490,00/ano)' : c.plano === 'mensal' ? 'Mensal (R$ 249,00/mês)' : '—';
 
+  // dados completos da proposta (kit, embarcação) — o contrato_get não os traz
+  let prop = null;
+  try {
+    const rows = await rpc('prop_get', { n: ref.n, t: ref.t });
+    if (rows && rows.length) prop = rows[0];
+  } catch (e) { /* segue sem os dados extras */ }
+  if (prop) { c.kit = c.kit || prop.kit; c.barco = c.barco || prop.barco; c.modelo = c.modelo || prop.modelo; }
+
   let contratoHTML = c.contrato_html || null;
-  if (!contratoHTML) {
-    // sem snapshot no banco: exibe a versão vigente dos termos, com aviso
+  // aceites anteriores à correção guardaram o modelo EM BRANCO: nesse caso o
+  // snapshot não serve para leitura, então exibimos os termos vigentes preenchidos
+  const snapshotEmBranco = !!contratoHTML && /data-mf="cliente"[^>]*>\s*_{6,}/.test(contratoHTML);
+  if (!contratoHTML || snapshotEmBranco) {
     modoAtual = true;
     try {
       contratoHTML = await (await fetch(c.segmento === 'B2B' ? 'termos-b2b.html' : 'termos-b2c.html', { cache: 'no-store' })).text();
-    } catch (e) { contratoHTML = null; }
+    } catch (e) { if (snapshotEmBranco) { contratoHTML = c.contrato_html; modoAtual = false; } }
   }
+  window.__snapshotEmBranco = snapshotEmBranco;
 
   // extrai <style> e <body> do documento do contrato para incorporar na página
   let docStyles = '', docBody = '';
@@ -154,7 +165,12 @@ async function main() {
         '<div class="cert-legal">Aceite eletrônico registrado na plataforma SAFEBOAT mediante confirmação expressa dos Termos de Uso e do Contrato de Prestação de Serviços, com identificação do signatário (nome e ' + docLabel + '), carimbo de data/hora' + (c.aceite_ip ? ', endereço IP' : '') + (c.aceite_hash ? ' e hash criptográfico do documento' : '') + '. Forma de contratação admitida pelo art. 10, § 2º, da MP 2.200-2/2001 e pelo Marco Civil da Internet (Lei 12.965/2014).</div>' +
       '</div>' +
     '</div></div>' +
-    (modoAtual ? '<div class="aviso"><div>⚠ Exibindo a <b>versão vigente</b> dos termos — o snapshot deste aceite não está disponível no banco de dados.</div></div>' : '') +
+    (modoAtual
+      ? '<div class="aviso"><div>' + (window.__snapshotEmBranco
+          ? 'ℹ Este aceite é anterior à correção do preenchimento automático e o documento arquivado ficou sem os dados preenchidos. Exibimos abaixo os <b>termos vigentes completados com os dados registrados deste aceite</b> (nome, documento, plano e valores da proposta). O arquivo e o hash originais permanecem inalterados no banco, preservando a evidência.'
+          : '⚠ Exibindo a <b>versão vigente</b> dos termos — o snapshot deste aceite não está disponível no banco de dados.') +
+        '</div></div>'
+      : '') +
     '<div class="doc"><div class="doc-inner"><div class="doc-root">' + (docBody || '<div style="padding:30px;text-align:center;color:#8A8F9C">Não foi possível carregar o texto do contrato.</div>') + '</div></div></div>' +
     '<button class="print" onclick="window.print()">🖨 Salvar PDF</button>';
 
@@ -163,6 +179,73 @@ async function main() {
     st.textContent = docStyles;
     document.head.appendChild(st);
   }
+
+  completarSnapshotAntigo(c);
+}
+
+/* Aceites feitos antes da correção guardaram o MODELO EM BRANCO. Só nesses
+   casos preenchemos a exibição com os dados registrados do próprio aceite —
+   o snapshot e o hash gravados NÃO são alterados (integridade da evidência). */
+function completarSnapshotAntigo(c) {
+  const alvo = document.querySelector('.doc-root [data-mf="cliente"]');
+  if (!alvo) return;
+  const emBranco = /^[_\s—]*$/.test(alvo.textContent || '');
+  if (!emBranco) return;   // snapshot já preenchido: nada a fazer
+
+  const CAMV = { impl: Math.round(411.24 * 1.15 * 100) / 100, mensal: 29.90, anual: 299.00 };
+  const PL = { mensal: { label: 'mensal', valor: 249, sufixo: '/mês' }, anual: { label: 'anual', valor: 2490, sufixo: '/ano' } };
+  const MS = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  const brl = (v) => Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const kit = String(c.kit || '').split(' + ');
+  const marca = (t) => kit.includes(t);
+  const nCam = (() => { const t = kit.find((k) => k.indexOf('#CAM=') === 0); return t ? Math.max(0, parseInt(t.slice(5), 10) || 0) : 0; })();
+  const upg = marca('#UPGRADE'), renov = marca('#RENOVACAO');
+  const anual = c.plano === 'anual';
+  const nc = (!upg && !renov) ? nCam : 0;
+
+  const set = (k, v) => document.querySelectorAll('.doc-root [data-mf="' + k + '"]').forEach((el) => { el.textContent = v; el.classList.add('filled'); });
+  const mostrar = (id) => { const el = document.querySelector('.doc-root #' + id); if (el) el.style.display = ''; };
+
+  const implSist = Number(c.valor) || 0;
+  const camImpl = nc * CAMV.impl;
+  const plano = PL[c.plano];
+  const assinBase = plano ? plano.valor : 0;
+  const camAssin = nc * (anual ? CAMV.anual : CAMV.mensal);
+  const total = upg ? implSist : (renov ? assinBase : implSist + camImpl + assinBase + camAssin);
+
+  set('numero', String(c.numero).padStart(4, '0'));
+  set('cliente', c.aceite_nome || c.cliente || '—');
+  if (c.aceite_doc) set('doc', c.aceite_doc);
+  if (c.aceite_email) set('email', c.aceite_email);
+  const emb = [c.barco, c.modelo].filter(Boolean).join(' — ');
+  if (emb) set('embarcacao', emb);
+  if (c.aceite_at) { const d = new Date(c.aceite_at); set('dataExtenso', d.getDate() + ' de ' + MS[d.getMonth()] + ' de ' + d.getFullYear()); }
+
+  set('valorImpl', renov ? 'não se aplica (renovação)' : (implSist ? brl(implSist) : 'isenta (cortesia SAFEBOAT)'));
+  if (plano) { set('planoLabel', plano.label); set('valorAssin', brl(assinBase) + plano.sufixo); }
+  set('valorTotal', brl(total));
+
+  if (nc > 0) {
+    mostrar('clCamera'); mostrar('avLinhaCam'); mostrar('avLinhaCamAssin');
+    set('camQtd', String(nc));
+    set('camImplVal', brl(camImpl));
+    set('camUnitAssin', brl(anual ? CAMV.anual : CAMV.mensal) + (anual ? '/ano' : '/mês'));
+    set('camMensalVal', brl(camAssin) + (anual ? '/ano' : '/mês'));
+    set('numTotal', '3.7'); set('numTotalA', '3.7.1'); set('numTotalB', '3.7.2'); set('numTotalCam', ' e 3.6.2');
+    set('avCamImpl', brl(camImpl)); set('avCamAssin', brl(camAssin));
+  }
+  set('avImpl', renov ? 'não se aplica' : (implSist ? brl(implSist) : 'isenta'));
+  set('avPlano', plano ? plano.label : '—');
+  set('avAssin', upg ? 'mantida — sem nova cobrança' : brl(assinBase));
+
+  const itens = kit.filter((k) => k && k.charAt(0) !== '#');
+  if (nc > 0) itens.push(nc + ' × Câmera de segurança Wi-Fi Full HD');
+  const ul = document.querySelector('.doc-root #anexoItens');
+  if (ul && itens.length) {
+    ul.innerHTML = '';
+    itens.forEach((it) => { const li = document.createElement('li'); li.textContent = it; ul.appendChild(li); });
+  }
+
 }
 
 main();

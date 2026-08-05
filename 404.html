@@ -595,14 +595,90 @@ function wirePagamento() {
 /* Evidência da assinatura: snapshot integral do contrato aceito + hash SHA-256.
    O hash prova QUAL texto foi aceito; o snapshot preserva o contrato no banco
    mesmo que os termos publicados mudem depois. */
-async function evidenciaContrato() {
+async function evidenciaContrato(ac) {
   try {
     const url = p.segmento === 'B2B' ? 'termos-b2b.html' : 'termos-b2c.html';
-    const html = await (await fetch(url, { cache: 'no-store' })).text();
+    const bruto = await (await fetch(url, { cache: 'no-store' })).text();
+    const doc = new DOMParser().parseFromString(bruto, 'text/html');
+    preencherContratoDOM(doc, ac);
+    // congela o documento: sem scripts, o snapshot não depende de dados vivos
+    doc.querySelectorAll('script').forEach((s) => s.remove());
+    const html = '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
     const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(html));
     const hash = Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
     return { hash, html };
   } catch (e) { return { hash: null, html: null }; }
+}
+
+/* Preenche o contrato com os dados do aceite e os valores efetivamente
+   escolhidos. Roda ANTES de gravar, porque o banco ainda não tem o aceite. */
+function preencherContratoDOM(doc, ac) {
+  const set = (campo, valor) => {
+    doc.querySelectorAll('[data-mf="' + campo + '"]').forEach((el) => {
+      el.textContent = valor;
+      el.classList.add('filled');
+    });
+  };
+  const mostrar = (id) => { const el = doc.getElementById(id); if (el) el.style.display = ''; };
+  const MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  const hoje = new Date();
+  const plano = PLANOS[ac.plano];
+  const f = fleet();
+  const n = cams();
+  const anual = ac.plano === 'anual';
+
+  set('numero', String(p.numero).padStart(4, '0'));
+  set('cliente', ac.nome);
+  set('doc', ac.doc);
+  set('email', ac.email);
+  const emb = [p.barco, p.modelo].filter(Boolean).join(' — ');
+  if (emb) set('embarcacao', emb);
+  set('dataExtenso', hoje.getDate() + ' de ' + MESES[hoje.getMonth()] + ' de ' + hoje.getFullYear());
+
+  // valores — exatamente os mesmos exibidos na proposta
+  if (isRenov()) set('valorImpl', 'não se aplica (renovação, sem alteração no sistema)');
+  else if (!Number(p.valor)) set('valorImpl', 'isenta (cortesia SAFEBOAT)');
+  else set('valorImpl', fmtBRL(p.valor) + (isUpgrade() ? ' (upgrade — adição de leitura de dados)' : ''));
+
+  if (plano) {
+    set('planoLabel', plano.label + (isUpgrade() ? ' (mantida — sem nova cobrança neste upgrade)' : ''));
+    set('valorAssin', fmtBRL(planoValor(ac.plano)) + plano.sufixo);
+  }
+  set('valorTotal', fmtBRL(totalCom(ac.plano)));
+
+  // frota (B2B)
+  if (f) {
+    set('boats', String(f.boats));
+    set('subBarco', fmtBRL(anual ? f.subAnual : f.subMensal) + (anual ? '/ano' : '/mês'));
+    set('subTotal', fmtBRL(planoValor(ac.plano)) + (anual ? '/ano' : '/mês'));
+  }
+
+  // câmeras (comodato)
+  if (n > 0 && !isUpgrade() && !isRenov()) {
+    mostrar('clCamera'); mostrar('avLinhaCam'); mostrar('avLinhaCamAssin');
+    set('camQtd', String(n));
+    set('camImplVal', fmtBRL(camImpl()));
+    set('camUnitAssin', fmtBRL(anual ? CAMERA.anual : CAMERA.mensal) + (anual ? '/ano' : '/mês'));
+    set('camMensalVal', fmtBRL(camAssin(ac.plano)) + (anual ? '/ano' : '/mês'));
+    set('numTotal', '3.7'); set('numTotalA', '3.7.1'); set('numTotalB', '3.7.2');
+    set('numTotalCam', ' e 3.6.2');
+    set('avCamImpl', fmtBRL(camImpl()));
+    set('avCamAssin', fmtBRL(camAssin(ac.plano)));
+  }
+
+  // Anexo I — itens cedidos em comodato
+  const itens = String(p.kit || '').split(' + ').filter((k) => k && k.charAt(0) !== '#');
+  if (n > 0 && !isUpgrade() && !isRenov()) itens.push(n + ' × Câmera de segurança Wi-Fi Full HD');
+  const ul = doc.getElementById('anexoItens');
+  if (ul && itens.length) {
+    ul.innerHTML = '';
+    itens.forEach((it) => { const li = doc.createElement('li'); li.textContent = it; ul.appendChild(li); });
+  }
+
+  // Anexo II — composição
+  set('avImpl', isRenov() ? 'não se aplica' : (Number(p.valor) ? fmtBRL(p.valor) : 'isenta'));
+  set('avPlano', plano ? plano.label : '—');
+  set('avAssin', isUpgrade() ? 'mantida — sem nova cobrança' : fmtBRL(planoValor(ac.plano)));
 }
 
 async function aceitarProposta() {
@@ -615,7 +691,7 @@ async function aceitarProposta() {
   if (!document.getElementById('aTermos').checked) { alert('É necessário aceitar os Termos de Uso e o Contrato para contratar.'); return; }
   const btn = document.getElementById('btnAceitar');
   btn.disabled = true; btn.textContent = 'Registrando aceite…';
-  const ev = await evidenciaContrato();
+  const ev = await evidenciaContrato({ nome, doc, email, plano: planoSel });
   let ok = false;
   try {
     ok = await rpc('prop_aceitar', { n: ref.n, t: ref.t, p_nome: nome, p_doc: doc, p_plano: planoSel, p_pag: pagSel, p_hash: ev.hash, p_contrato: ev.html, p_email: email });
