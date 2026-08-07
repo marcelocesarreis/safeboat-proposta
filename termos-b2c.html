@@ -243,7 +243,7 @@ function preencherContrato(p) {
   const renov = isRenov(p.kit);
   const upg = isUpg(p.kit);
   const anual = p.plano === 'anual';
-  const nc = (!renov && !upg) ? camsKit(p.kit) : 0;
+  const nc = camsKit(p.kit);   // câmeras valem também em upgrade e renovação
 
   set('numero', String(p.numero).padStart(4, '0'));
   set('cliente', p.aceite_nome || p.cliente || '__________________________');
@@ -258,9 +258,10 @@ function preencherContrato(p) {
   const plano = PLANOS[p.plano];
   const assinBase = plano ? plano.valor : 0;
   const camAssin = nc * (anual ? CAM.anual : CAM.mensal);
-  const total = upg ? implSist : (renov ? assinBase : implSist + camImpl + assinBase + camAssin);
+  const total = upg ? implSist + camImpl + camAssin : implSist + camImpl + assinBase + camAssin;
 
-  if (renov) set('valorImpl', 'não se aplica (renovação, sem alteração no sistema)');
+  if (renov && !implSist) set('valorImpl', 'não se aplica (renovação sem alteração no sistema)');
+  else if (renov) set('valorImpl', fmtBRL(implSist) + ' (implantação da leitura de motorização nesta renovação)');
   else if (!implSist) set('valorImpl', 'isenta (cortesia SAFEBOAT)');
   else set('valorImpl', fmtBRL(implSist) + (upg ? ' (upgrade — adição de leitura de dados)' : ''));
 

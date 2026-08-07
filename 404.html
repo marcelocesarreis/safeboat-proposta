@@ -327,9 +327,12 @@ function planoValor(plano) {
    O cliente vê um número só (ex.: 249 + 29,90 = 278,90); o detalhe por câmera
    fica na seção da câmera, para o total não ficar fragmentado. */
 const assinValor = (plano) => planoValor(plano) + camAssin(plano);
+/* Upgrade: a assinatura atual é mantida — paga-se a implementação (do upgrade e
+   das câmeras) e o acréscimo das câmeras na assinatura. Renovação e instalação
+   nova: implementação + assinatura, ambas já com as câmeras embutidas. */
 const totalCom = (plano) => isUpgrade()
-  ? Number(p.valor)
-  : (isRenov() ? planoValor(plano) : implValor() + assinValor(plano));
+  ? implValor() + camAssin(plano)
+  : implValor() + assinValor(plano);
 
 function pubKitCard(item) {
   const img = KIT_IMGS[item];
@@ -341,15 +344,15 @@ function pubKitCard(item) {
 /* Card(s) de câmera para a grade do kit (com foto e quantidade) */
 function camKitCards() {
   const n = cams();
-  if (!n || isUpgrade() || isRenov()) return '';
+  if (!n) return '';
   return '<div class="eqcard"><img src="' + CAMERA.img + '" alt="' + esc(CAMERA.nome) + '"><b>' + esc(CAMERA.nome) + (n > 1 ? ' · ' + n + '×' : '') + '</b></div>';
 }
 
-/* Seção da câmera opcional — só aparece quando o vendedor incluiu câmeras (#CAM=n)
-   na proposta e o fluxo é o padrão (não upgrade / não renovação). */
+/* Seção da câmera opcional — aparece sempre que o vendedor incluiu câmeras
+   (#CAM=n), seja instalação nova, upgrade ou renovação. */
 function camSecaoHTML() {
   const n = cams();
-  if (!n || isUpgrade() || isRenov()) return '';
+  if (!n) return '';
   const plural = n > 1 ? 's' : '';
   return '<section><h2>Câmera' + plural + ' de segurança a bordo <span style="font-size:13px;font-weight:700;color:#2264BE">· opcional</span></h2>' +
     '<div class="cam-wrap">' +
@@ -423,20 +426,29 @@ function render() {
     camSecaoHTML() +
     '<section><h2>Investimento</h2>' +
     (renov
-      ? '<div class="invest-hint">Seu contrato SAFEBOAT venceu. Renove sua assinatura para continuar com o monitoramento ativo — escolha mensal ou anual.</div>' +
+      ? '<div class="invest-hint">Seu contrato SAFEBOAT venceu. Renove sua assinatura para continuar com o monitoramento ativo — escolha mensal ou anual.' +
+          (implValor() ? ' Esta renovação também inclui uma <b>implementação de ' + fmtBRL(implValor()) + '</b>' + (Number(p.valor) && cams() ? ' (leitura de motorização + câmeras)' : (Number(p.valor) ? ' (leitura de motorização)' : ' (câmeras)')) + ', paga junto no fechamento.' : '') +
+        '</div>' +
         '<div class="invest">' +
-          '<div class="card plan" data-plano="mensal"><div class="mark"></div><div class="t">Renovação mensal</div><div class="v">' + fmtBRL(planoValor('mensal')) + '<small>/mês</small></div><div class="d">Renova mês a mês. Cancele quando quiser.</div></div>' +
+          (implValor()
+            ? '<div class="card"><div class="t">Implementação · pagamento único</div><div class="v">' + fmtBRL(implValor()) + '</div><div class="d">' +
+                (Number(p.valor) ? 'Implantação da <b>leitura de motorização</b> — passa a ler os dados do motor, que hoje você não tem. ' : '') +
+                (cams() ? 'Inclui ' + cams() + ' câmera' + (cams() > 1 ? 's' : '') + ' (' + fmtBRL(camImpl()) + '). ' : '') +
+                'Instalação por equipe técnica SAFEBOAT em <b>até 30 dias</b> após o pagamento.</div></div>' +
+              '<div class="plusmark">+</div>'
+            : '') +
+          '<div class="card plan" data-plano="mensal"><div class="mark"></div><div class="t">Renovação mensal</div><div class="v">' + fmtBRL(assinValor('mensal')) + '<small>/mês</small></div><div class="d">Renova mês a mês. Cancele quando quiser.</div>' + camAssinNota('mensal') + '</div>' +
           '<div class="oumark">OU</div>' +
-          '<div class="card plan" data-plano="anual"><div class="badge">' + PLANOS.anual.destaque + '</div><div class="mark"></div><div class="t">Renovação anual</div><div class="v">' + fmtBRL(planoValor('anual')) + '<small>/ano</small></div><div class="d">Equivale a ' + fmtBRL(planoValor('anual') / 12) + '/mês. 12 meses de monitoramento contínuo.</div></div>' +
+          '<div class="card plan" data-plano="anual"><div class="badge">' + PLANOS.anual.destaque + '</div><div class="mark"></div><div class="t">Renovação anual</div><div class="v">' + fmtBRL(assinValor('anual')) + '<small>/ano</small></div><div class="d">Equivale a ' + fmtBRL(assinValor('anual') / 12) + '/mês. 12 meses de monitoramento contínuo.</div>' + camAssinNota('anual') + '</div>' +
         '</div></section>'
       : (upg
-      ? '<div class="invest-hint">Você já é cliente SAFEBOAT. Este <b>upgrade</b> adiciona o acesso à rede NMEA por uma <b>implementação única de ' + fmtBRL(p.valor) + '</b>. Sua <b>assinatura atual é mantida</b> — sem nova cobrança. Confirme abaixo qual é o seu plano atual.</div>' +
+      ? '<div class="invest-hint">Você já é cliente SAFEBOAT. Este <b>upgrade</b> tem uma <b>implementação única de ' + fmtBRL(implValor()) + '</b>' + (cams() ? ' (upgrade + ' + cams() + ' câmera' + (cams() > 1 ? 's' : '') + ')' : '') + '. Sua <b>assinatura atual é mantida</b>' + (cams() ? ', com o acréscimo das câmeras' : ' — sem nova cobrança') + '. Confirme abaixo qual é o seu plano atual.</div>' +
         '<div class="invest">' +
-          '<div class="card"><div class="t">Upgrade · implementação única</div><div class="v">' + fmtBRL(p.valor) + '</div><div class="d">Adição do acesso à rede NMEA por equipe técnica SAFEBOAT em <b>até 30 dias</b> após o pagamento. Pago no fechamento.</div></div>' +
+          '<div class="card"><div class="t">Upgrade · implementação única</div><div class="v">' + fmtBRL(implValor()) + '</div><div class="d">' + (Number(p.valor) ? 'Adição da leitura de dados do motor' : 'Instalação') + ' por equipe técnica SAFEBOAT em <b>até 30 dias</b> após o pagamento. Pago no fechamento.' + (cams() ? ' <b style="color:#2264BE">Inclui ' + cams() + ' câmera' + (cams() > 1 ? 's' : '') + ' (' + fmtBRL(camImpl()) + ').</b>' : '') + '</div></div>' +
           '<div class="plusmark" style="background:#0B6B4D">✓</div>' +
-          '<div class="card plan" data-plano="mensal"><div class="mark"></div><div class="t">Meu plano atual é mensal</div><div class="v" style="font-size:19px">Mantido</div><div class="d">Sua mensalidade de ' + fmtBRL(planoValor('mensal')) + ' segue igual — <b>sem nova cobrança</b> neste upgrade.</div></div>' +
+          '<div class="card plan" data-plano="mensal"><div class="mark"></div><div class="t">Meu plano atual é mensal</div><div class="v" style="font-size:19px">' + (cams() ? fmtBRL(planoValor('mensal') + camAssin('mensal')) : 'Mantido') + '</div><div class="d">Sua mensalidade de ' + fmtBRL(planoValor('mensal')) + ' segue igual' + (cams() ? ', com <b>' + fmtBRL(camAssin('mensal')) + '</b> de acréscimo das câmeras.' : ' — <b>sem nova cobrança</b> neste upgrade.') + '</div></div>' +
           '<div class="oumark">OU</div>' +
-          '<div class="card plan" data-plano="anual"><div class="mark"></div><div class="t">Meu plano atual é anual</div><div class="v" style="font-size:19px">Mantido</div><div class="d">Sua anuidade de ' + fmtBRL(planoValor('anual')) + ' segue igual — <b>sem nova cobrança</b> neste upgrade.</div></div>' +
+          '<div class="card plan" data-plano="anual"><div class="mark"></div><div class="t">Meu plano atual é anual</div><div class="v" style="font-size:19px">' + (cams() ? fmtBRL(planoValor('anual') + camAssin('anual')) : 'Mantido') + '</div><div class="d">Sua anuidade de ' + fmtBRL(planoValor('anual')) + ' segue igual' + (cams() ? ', com <b>' + fmtBRL(camAssin('anual')) + '</b> de acréscimo das câmeras.' : ' — <b>sem nova cobrança</b> neste upgrade.') + '</div></div>' +
         '</div></section>'
       : ((f
           ? '<div class="invest-hint">Frota de <b>' + f.boats + ' embarcações</b>. A <b>implementação</b> soma o setup de cada barco (conforme a rede) e a <b>assinatura</b> é de <b>' + fmtBRL(f.subMensal) + '/barco/mês</b> — total <b>' + fmtBRL(planoValor('mensal')) + '/mês</b> ou <b>' + fmtBRL(planoValor('anual')) + '/ano</b>.</div>'
@@ -532,15 +544,22 @@ function pagamentoHTML() {
   const upg = isUpgrade();
   const renov = isRenov();
   const cab = renov ? 'renovação da assinatura' : (upg ? 'implementação do upgrade' : (implIsento() ? 'assinatura (implementação isenta)' : 'implementação + assinatura'));
+  const linhaCamImpl = cams() ? '<div>Câmera' + (cams() > 1 ? 's' : '') + ' (' + cams() + ') · implantação <b style="float:right;margin-left:26px">' + fmtBRL(camImpl()) + '</b></div>' : '';
+  const linhaCamAssin = (cams() && plano) ? '<div>Câmera' + (cams() > 1 ? 's' : '') + ' · acréscimo na assinatura <b style="float:right;margin-left:26px">' + fmtBRL(camAssin(p.plano)) + '</b></div>' : '';
   const resumo = renov
     ? '<div style="display:inline-block;text-align:left;margin:6px auto 2px;font-size:13px;color:#3A3F4E">' +
+        (Number(p.valor) ? '<div>Leitura de motorização · implantação <b style="float:right;margin-left:26px">' + fmtBRL(p.valor) + '</b></div>' : '') +
+        linhaCamImpl +
         (plano ? '<div>Renovação ' + plano.label.toLowerCase() + (p.plano === 'anual' ? ' (12 meses)' : '') + ' <b style="float:right;margin-left:26px">' + fmtBRL(planoValor(p.plano)) + '</b></div>' : '') +
+        linhaCamAssin +
         '<div style="border-top:1px solid #E3E5EB;margin-top:6px;padding-top:6px;font-weight:800;color:#2D324B">Total <span style="float:right;margin-left:26px;font-size:22px">' + fmtBRL(total) + '</span></div>' +
       '</div>'
     : upg
     ? '<div style="display:inline-block;text-align:left;margin:6px auto 2px;font-size:13px;color:#3A3F4E">' +
-        '<div>Upgrade · acesso à rede NMEA <b style="float:right;margin-left:26px">' + fmtBRL(p.valor) + '</b></div>' +
+        (Number(p.valor) ? '<div>Upgrade · leitura de dados do motor <b style="float:right;margin-left:26px">' + fmtBRL(p.valor) + '</b></div>' : '') +
+        linhaCamImpl +
         (plano ? '<div style="color:#6B7080">Assinatura ' + plano.label.toLowerCase() + ' atual <b style="float:right;margin-left:26px;color:#0B6B4D">mantida</b></div>' : '') +
+        linhaCamAssin +
         '<div style="border-top:1px solid #E3E5EB;margin-top:6px;padding-top:6px;font-weight:800;color:#2D324B">Total <span style="float:right;margin-left:26px;font-size:22px">' + fmtBRL(total) + '</span></div>' +
       '</div>'
     : '<div style="display:inline-block;text-align:left;margin:6px auto 2px;font-size:13px;color:#3A3F4E">' +
@@ -636,7 +655,8 @@ function preencherContratoDOM(doc, ac) {
   set('dataExtenso', hoje.getDate() + ' de ' + MESES[hoje.getMonth()] + ' de ' + hoje.getFullYear());
 
   // valores — exatamente os mesmos exibidos na proposta
-  if (isRenov()) set('valorImpl', 'não se aplica (renovação, sem alteração no sistema)');
+  if (isRenov() && !Number(p.valor)) set('valorImpl', 'não se aplica (renovação sem alteração no sistema)');
+  else if (isRenov()) set('valorImpl', fmtBRL(p.valor) + ' (implantação da leitura de motorização nesta renovação)');
   else if (!Number(p.valor)) set('valorImpl', 'isenta (cortesia SAFEBOAT)');
   else set('valorImpl', fmtBRL(p.valor) + (isUpgrade() ? ' (upgrade — adição de leitura de dados)' : ''));
 
@@ -654,7 +674,7 @@ function preencherContratoDOM(doc, ac) {
   }
 
   // câmeras (comodato)
-  if (n > 0 && !isUpgrade() && !isRenov()) {
+  if (n > 0) {
     mostrar('clCamera'); mostrar('avLinhaCam'); mostrar('avLinhaCamAssin');
     set('camQtd', String(n));
     set('camImplVal', fmtBRL(camImpl()));
@@ -668,7 +688,7 @@ function preencherContratoDOM(doc, ac) {
 
   // Anexo I — itens cedidos em comodato
   const itens = String(p.kit || '').split(' + ').filter((k) => k && k.charAt(0) !== '#');
-  if (n > 0 && !isUpgrade() && !isRenov()) itens.push(n + ' × Câmera de segurança Wi-Fi Full HD');
+  if (n > 0) itens.push(n + ' × Câmera de segurança Wi-Fi Full HD');
   const ul = doc.getElementById('anexoItens');
   if (ul && itens.length) {
     ul.innerHTML = '';
@@ -676,7 +696,7 @@ function preencherContratoDOM(doc, ac) {
   }
 
   // Anexo II — composição
-  set('avImpl', isRenov() ? 'não se aplica' : (Number(p.valor) ? fmtBRL(p.valor) : 'isenta'));
+  set('avImpl', Number(p.valor) ? fmtBRL(p.valor) : (isRenov() ? 'não se aplica' : 'isenta'));
   set('avPlano', plano ? plano.label : '—');
   set('avAssin', isUpgrade() ? 'mantida — sem nova cobrança' : fmtBRL(planoValor(ac.plano)));
 }
