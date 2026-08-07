@@ -261,7 +261,7 @@ function preencherContrato(p) {
   const total = upg ? implSist + camImpl + camAssin : implSist + camImpl + assinBase + camAssin;
 
   if (renov && !implSist) set('valorImpl', 'não se aplica (renovação sem alteração no sistema)');
-  else if (renov) set('valorImpl', fmtBRL(implSist) + ' (implantação da leitura de motorização nesta renovação)');
+  else if (renov) set('valorImpl', fmtBRL(implSist) + ' (implantação contratada nesta renovação — itens discriminados no Anexo I)');
   else if (!implSist) set('valorImpl', 'isenta (cortesia SAFEBOAT)');
   else set('valorImpl', fmtBRL(implSist) + (upg ? ' (upgrade — adição de leitura de dados)' : ''));
 
