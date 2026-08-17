@@ -156,6 +156,28 @@ const PAGAMENTO = {
   pixCidade: 'FLORIANOPOLIS',
   linkCartao: '',
 };
+/* Mensalidade = recorrência obrigatória no cartão (Mercado Pago).
+   Os links abaixo são planos de assinatura criados na conta SAFEBOAT: o cliente
+   adere com o próprio cartão e os meses seguintes são debitados automaticamente,
+   sem comprometer o limite. A implementação (única) continua no PIX.
+   'full' = assinatura completa (R$249 + câmeras) · 'cam' = só o acréscimo de
+   câmeras (upgrades, que mantêm a assinatura atual). */
+const MP_PLANOS = {
+  full: {
+    '249.00': 'https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=4e58b2cad1cc43c3b8a99b2cff07cabe',
+    '278.90': 'https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=2481437868db429a809a93b852ba8fe3',
+    '308.80': 'https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=40b77e70cab74c80a55f5e867d4f448f',
+    '338.70': 'https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=52e050aafbf54437abaa1e104572e9b7',
+    '368.60': 'https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=a178a1c17c6e428e94b3c6b9bbd2c13e',
+  },
+  cam: {
+    '29.90': 'https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=a14451829d274f3f95c432b8c1810d1b',
+    '59.80': 'https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=533c32113517400c8d09fbeb66c26983',
+    '89.70': 'https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=ec93ac7d975f4f519b2640cd95fee05e',
+    '119.60': 'https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=c4591938a28349319f36cf0396ac3112',
+  },
+};
+const mpPlanoUrl = (tipo, valor) => (MP_PLANOS[tipo] || {})[Number(valor).toFixed(2)] || null;
 const REDES = {
   nenhuma: { label: 'Sem rede NMEA e sem rede CAN' },
   nmea: { label: 'Rede NMEA com dados de motor convertidos' },
@@ -349,6 +371,20 @@ const totalCom = (plano) => isUpgrade()
   ? implValor() + camAssin(plano)
   : implValor() + assinValor(plano);
 
+/* Recorrência no cartão: obrigatória sempre que houver valor MENSAL a receber
+   (B2C — frotas B2B são faturadas). Devolve o valor mensal e o link do plano. */
+function recorrenciaInfo(plano) {
+  if (plano !== 'mensal' || fleet()) return null;
+  if (isUpgrade()) {
+    if (!cams()) return null;                      // upgrade sem câmera: nada mensal novo
+    const v = camAssin('mensal');
+    return { valorMes: v, url: mpPlanoUrl('cam', v) };
+  }
+  const v = assinValor('mensal');
+  return { valorMes: v, url: mpPlanoUrl('full', v) };
+}
+const recorrenciaObrigatoria = (plano) => !!recorrenciaInfo(plano);
+
 function pubKitCard(item) {
   const img = KIT_IMGS[item];
   return '<div class="eqcard">' +
@@ -489,14 +525,50 @@ function render() {
       document.querySelectorAll('.plan').forEach((x) => x.classList.toggle('sel', x === el));
       const btn = document.getElementById('btnAceitar');
       if (btn) btn.textContent = ctaLabel();
+      updatePayOpts();                    // mensal força cartão recorrente
     });
   });
   renderAceite();
 }
 
+/* Seletor de forma de pagamento. Com plano MENSAL o cartão (recorrente) é
+   obrigatório — o PIX fica restrito à implementação. */
+function payOptsHTML() {
+  if (recorrenciaObrigatoria(planoSel)) {
+    pagSel = 'cartao';
+    return '<div class="pay-opt sel" data-pag="cartao" style="flex:1;min-width:220px">💳 Cartão de crédito — assinatura recorrente</div>' +
+      '<div style="flex-basis:100%;font-size:11.5px;color:#8A8F9C;margin-top:6px">No plano mensal a cobrança é <b>recorrente no cartão</b> (débito automático mensal, sem comprometer o limite).' +
+      (implValor() ? ' A implementação é paga por <b>PIX</b> no fechamento.' : '') + '</div>';
+  }
+  return '<div class="pay-opt' + (pagSel === 'pix' ? ' sel' : '') + '" data-pag="pix">💠 PIX (QR Code)</div>' +
+    '<div class="pay-opt' + (pagSel === 'cartao' ? ' sel' : '') + '" data-pag="cartao">💳 Cartão de crédito</div>';
+}
+function wirePayOpts() {
+  const trava = recorrenciaObrigatoria(planoSel);
+  document.querySelectorAll('.pay-opt').forEach((el) => el.addEventListener('click', () => {
+    if (trava) return;                        // mensal: cartão obrigatório
+    pagSel = el.dataset.pag;
+    document.querySelectorAll('.pay-opt').forEach((x) => x.classList.toggle('sel', x === el));
+  }));
+}
+function updatePayOpts() {
+  const d = document.getElementById('payOpts');
+  if (d) { d.innerHTML = payOptsHTML(); wirePayOpts(); }
+}
+
 function ctaLabel() {
-  if (isRenov()) return planoSel ? 'Renovar assinatura — pagar ' + fmtBRL(totalCom(planoSel)) + (planoSel === 'anual' ? ' (anuidade)' : ' (mensalidade)') : 'Escolha mensal ou anual acima';
-  if (!planoSel) return isUpgrade() ? 'Confirme seu plano atual acima' : 'Aceitar termos e contratar';
+  if (!planoSel) {
+    if (isRenov()) return 'Escolha mensal ou anual acima';
+    return isUpgrade() ? 'Confirme seu plano atual acima' : 'Aceitar termos e contratar';
+  }
+  const rec = recorrenciaInfo(planoSel);
+  if (rec) {                                    // mensal: PIX da implementação + cartão recorrente
+    const verbo = isRenov() ? 'Renovar' : 'Aceitar e contratar';
+    return implValor()
+      ? verbo + ' — ' + fmtBRL(implValor()) + ' (PIX) + ' + fmtBRL(rec.valorMes) + '/mês no cartão'
+      : verbo + ' — ativar ' + fmtBRL(rec.valorMes) + '/mês no cartão';
+  }
+  if (isRenov()) return 'Renovar assinatura — pagar ' + fmtBRL(totalCom(planoSel)) + (planoSel === 'anual' ? ' (anuidade)' : ' (mensalidade)');
   if (isUpgrade()) return 'Aceitar e pagar upgrade — ' + fmtBRL(totalCom(planoSel)) + ' (implementação do upgrade)';
   return 'Aceitar termos e contratar — pagar ' + fmtBRL(totalCom(planoSel)) + ' (' + (implIsento() ? '' : 'implementação + ') + (planoSel === 'anual' ? 'anuidade' : '1ª mensalidade') + ')';
 }
@@ -536,17 +608,11 @@ function renderAceite() {
     '<label class="f">' + (p.segmento === 'B2B' ? 'CNPJ *' : 'CPF *') + '</label><input type="text" id="aDoc" placeholder="' + (p.segmento === 'B2B' ? '00.000.000/0000-00' : '000.000.000-00') + '">' +
     '<label class="f">E-mail *</label><input type="email" id="aEmail" inputmode="email" placeholder="seu@email.com" value="' + esc(authUser && authUser.email || '') + '"' + (authUser ? ' readonly style="background:#F0F6FE"' : '') + '><div style="font-size:11.5px;color:#8A8F9C;margin-top:4px">' + (authUser ? 'E-mail verificado pela sua conta ' + esc(provNome) + ' — mais segurança na assinatura.' : 'Enviaremos o contrato assinado para este e-mail, que também será seu acesso ao app SAFEBOAT.') + '</div>' +
     '<div class="check"><input type="checkbox" id="aTermos"><span>Li e aceito os <a href="' + termosUrl + '" target="_blank">Termos de Uso e o Contrato de Prestação de Serviços</a> da SAFEBOAT (' + (p.segmento === 'B2B' ? 'empresas' : 'pessoa física') + ').</span></div>' +
-    '<div class="pay-opts">' +
-      '<div class="pay-opt' + (pagSel === 'pix' ? ' sel' : '') + '" data-pag="pix">💠 PIX (QR Code)</div>' +
-      '<div class="pay-opt' + (pagSel === 'cartao' ? ' sel' : '') + '" data-pag="cartao">💳 Cartão de crédito</div>' +
-    '</div>' +
+    '<div class="pay-opts" id="payOpts" style="flex-wrap:wrap">' + payOptsHTML() + '</div>' +
     '<button class="cta" id="btnAceitar">' + ctaLabel() + '</button>' +
     '<div style="margin-top:10px;font-size:12px;color:#8A8F9C;text-align:center">' + (isRenov() ? 'O pagamento renova sua assinatura SAFEBOAT pelo período escolhido (mensal ou anual). Não há alteração no equipamento nem nova instalação — o monitoramento continua ativo.' : (isUpgrade() ? 'O pagamento no fechamento é apenas a <b>implementação do upgrade</b> — sua assinatura atual é mantida, sem nova cobrança. A leitura da rede NMEA passa a valer <b>após a instalação</b> · instalação em até <b>30 dias</b> a partir do pagamento.' : ((implIsento() ? 'O pagamento no fechamento é apenas da assinatura escolhida (mensalidade ou anuidade integral) — a implementação é cortesia.' : 'O pagamento no fechamento inclui a implementação <b>+</b> a assinatura escolhida (mensalidade ou anuidade integral).') + ' O período de uso passa a valer <b>somente após a implementação</b> · instalação em até <b>30 dias</b> a partir do pagamento.'))) + '</div>' +
   '</div>';
-  document.querySelectorAll('.pay-opt').forEach((el) => el.addEventListener('click', () => {
-    pagSel = el.dataset.pag;
-    document.querySelectorAll('.pay-opt').forEach((x) => x.classList.toggle('sel', x === el));
-  }));
+  wirePayOpts();
   const bg = document.getElementById('socGoogle'); if (bg) bg.addEventListener('click', () => loginSocial('google'));
   const ba = document.getElementById('socApple'); if (ba) ba.addEventListener('click', () => loginSocial('apple'));
   document.getElementById('btnAceitar').addEventListener('click', aceitarProposta);
@@ -590,7 +656,30 @@ function pagamentoHTML() {
         (upg ? '📅 A leitura da rede NMEA passa a valer <b>após a instalação</b>. Sua assinatura atual é mantida, sem nova cobrança.' : '📅 O período de uso da assinatura passa a valer <b>somente após a implementação</b> do sistema.') +
       '</div>';
   let inner;
-  if ((p.pagamento || pagSel) === 'cartao' && PAGAMENTO.linkCartao) {
+  const rec = recorrenciaInfo(p.plano);
+  if (rec) {
+    /* Mensal: assinatura recorrente no cartão (Mercado Pago) + PIX só da implementação */
+    const resumoRec = '<div style="display:inline-block;text-align:left;margin:6px auto 2px;font-size:13px;color:#3A3F4E">' +
+      (implValor() ? '<div>Implementação (hoje, via PIX) <b style="float:right;margin-left:26px">' + fmtBRL(implValor()) + '</b></div>' : '') +
+      '<div>Assinatura recorrente no cartão <b style="float:right;margin-left:26px">' + fmtBRL(rec.valorMes) + '/mês</b></div>' +
+      '<div style="border-top:1px solid #E3E5EB;margin-top:6px;padding-top:6px;font-weight:800;color:#2D324B">Hoje via PIX <span style="float:right;margin-left:26px;font-size:22px">' + (implValor() ? fmtBRL(implValor()) : 'R$ 0,00') + '</span></div>' +
+      '</div>';
+    const btnRec = rec.url
+      ? '<a href="' + rec.url + '" target="_blank" rel="noopener"><button class="btnc" style="background:#2264BE">💳 Ativar assinatura no cartão — ' + fmtBRL(rec.valorMes) + '/mês</button></a>' +
+        '<div style="font-size:12px;color:#4E5666">Débito automático mensal no cartão (Mercado Pago) · não compromete o limite · 1ª cobrança na ativação</div>'
+      : '<div style="font-size:13px;color:#6B4E12;background:#FFF6E6;border:1px solid #F3D699;border-radius:10px;padding:10px 14px;text-align:left">💳 Para esta configuração, nossa equipe enviará em seguida o link de ativação da assinatura no cartão (' + fmtBRL(rec.valorMes) + '/mês).</div>';
+    inner = '<div style="font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#8A8F9C;font-weight:700">Pagamento · assinatura recorrente' + (implValor() ? ' + implementação' : '') + '</div>' +
+      resumoRec +
+      '<div style="margin:6px 0 2px;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#8A8F9C;font-weight:700">1 · Assinatura mensal no cartão</div>' +
+      btnRec +
+      (implValor() && PAGAMENTO.pixChave
+        ? '<div style="margin:16px 0 2px;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#8A8F9C;font-weight:700">2 · Implementação via PIX</div>' +
+          '<div id="pixQr"></div>' +
+          '<div style="font-size:12.5px;color:#4E5666">Escaneie com o app do seu banco · Favorecido: ' + esc(PAGAMENTO.pixNome) + '</div>' +
+          '<div class="copia" id="pixCopia"></div>' +
+          '<button class="btnc" id="btnCopiaPix">📋 Copiar código PIX (copia e cola)</button>'
+        : '');
+  } else if ((p.pagamento || pagSel) === 'cartao' && PAGAMENTO.linkCartao) {
     inner = '<div style="font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#8A8F9C;font-weight:700">Pagamento · ' + cab + '</div>' +
       resumo +
       '<a href="' + PAGAMENTO.linkCartao + '" target="_blank"><button class="btnc">💳 Pagar com cartão de crédito</button></a>';
@@ -610,7 +699,9 @@ function pagamentoHTML() {
 
 function wirePagamento() {
   if (PAGAMENTO.pixChave && document.getElementById('pixQr')) {
-    const payload = pixPayload(totalCom(p.plano), 'SB' + String(p.numero).padStart(4, '0'));
+    // com recorrência no cartão, o PIX cobre apenas a implementação
+    const valorPix = recorrenciaInfo(p.plano) ? implValor() : totalCom(p.plano);
+    const payload = pixPayload(valorPix, 'SB' + String(p.numero).padStart(4, '0'));
     document.getElementById('pixCopia').textContent = payload;
     if (window.qrcode) {
       const qr = window.qrcode(0, 'M');
@@ -724,6 +815,7 @@ async function aceitarProposta() {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { alert('Informe um e-mail válido — ele será seu acesso ao app e receberá o contrato.'); return; }
   if (!document.getElementById('aTermos').checked) { alert('É necessário aceitar os Termos de Uso e o Contrato para contratar.'); return; }
   const btn = document.getElementById('btnAceitar');
+  if (recorrenciaObrigatoria(planoSel)) pagSel = 'cartao';   // mensal: cartão obrigatório
   btn.disabled = true; btn.textContent = 'Registrando aceite…';
   const ev = await evidenciaContrato({ nome, doc, email, plano: planoSel });
   let ok = false;
