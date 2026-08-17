@@ -178,6 +178,72 @@ const MP_PLANOS = {
   },
 };
 const mpPlanoUrl = (tipo, valor) => (MP_PLANOS[tipo] || {})[Number(valor).toFixed(2)] || null;
+/* Pagamento avulso da implementação no cartão (opcional, à escolha do cliente).
+   Links de checkout reutilizáveis criados na conta SAFEBOAT para os valores
+   padrão. Valor fora da tabela (edição manual): só PIX. */
+const MP_IMPL = {
+  '300.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-39166b27-610e-4f80-9cf1-f4d84faaf4c0',
+  '400.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-c9514859-ecd7-43ba-8364-2e869dea5ac0',
+  '472.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-a3cf6242-62b4-47f8-a36e-3ee0d685c32f',
+  '600.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-59b68f29-2cdd-430d-8bb3-2c95ae0278d3',
+  '700.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-573b87b8-8089-4f06-b027-2ad4290965e6',
+  '772.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-6ac28b87-3472-47ce-8c98-7e7f4964f1db',
+  '872.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-a97e81e0-c1e2-4ac3-98df-6180749e04da',
+  '945.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-22426951-00ef-4983-a15b-a83396a0a136',
+  '1000.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-2c5425ae-38b2-4f7c-a527-74ab820c6257',
+  '1072.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-9123a307-ead5-4b11-a2dd-1efa9a60f150',
+  '1100.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-d429f0a4-21b3-432a-a415-566508f0eb82',
+  '1172.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-47adce2a-e394-4166-a0e5-2a930a3e299a',
+  '1245.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-3485a1c8-cd9e-483a-b7a6-fb5ff8cb397c',
+  '1300.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-42eced41-5e02-4210-8873-c935b96840ea',
+  '1345.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-ae683360-ecfb-412f-8256-6502ff117cc4',
+  '1418.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-74ab1a27-1212-4b15-9f61-9453fc1f2a77',
+  '1472.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-f45a5b8b-1703-4b39-818b-959e3b899238',
+  '1500.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-0d68ab22-6c2c-42d7-9cfb-b2eed7604876',
+  '1545.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-251db7e8-5a8b-447b-9826-8dfb28d975cf',
+  '1572.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-2a1f025b-f9dd-42f4-8060-b7cecd68fbbb',
+  '1600.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-d4a4171b-71ef-495a-a3c0-8c00a0826f5e',
+  '1645.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-3c0249a8-f9c7-4bf7-b2a1-0447360636fb',
+  '1700.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-b044364d-95f8-4ff8-b2f3-7ff12983877e',
+  '1718.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-69ce0aff-aef1-4f0a-85bb-c2670a86155a',
+  '1772.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-856e636e-f5c2-491b-ae43-2f2bb878d4fd',
+  '1818.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-5251e581-7e70-4875-b382-017ae92363ac',
+  '1891.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-ae85f177-eb2d-4570-a498-f787b30641d0',
+  '1945.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-61b48e5b-9330-448b-bab4-3ec46508d573',
+  '1972.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-2a09aef8-baad-4d18-bb5a-fc48c3406dba',
+  '2000.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-b5f7c50f-391a-409c-98e8-564cf9e9384b',
+  '2018.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-c519392e-4e82-4711-8eeb-77e79e0df34d',
+  '2045.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-75efe6d2-53d9-4690-aef7-7e449795cc3f',
+  '2072.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-c43dc78b-75c7-4f02-8641-8da859426a0c',
+  '2118.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-bc953089-7a81-46e6-88cd-5a351453ac7f',
+  '2172.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-5c0ee0f3-a2c5-4025-a6d0-01540e0688a5',
+  '2191.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-53356fd2-7157-493d-a455-a2fc9b107c94',
+  '2245.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-e234137d-c1f0-4a79-99e7-8b2c2385c050',
+  '2291.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-2eea19ef-34a2-4c84-aa95-87fca3fc098c',
+  '2418.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-ed7f6d64-e797-42ea-a6c6-f1a8260e79e8',
+  '2445.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-71ecd389-b8ff-4752-9c68-a425e4cf05c4',
+  '2472.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-5cd61d1d-396d-4094-874e-ed9d83ccfb37',
+  '2491.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-f98c1436-2bf1-49db-a440-dbcf4840fc9f',
+  '2518.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-085b0c0c-1039-4ba5-a03b-32e69a3161c4',
+  '2545.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-a75b7908-ee45-4bc7-9571-68ed16d06f7c',
+  '2591.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-f797c642-2143-4d8e-9e54-b7dc77e0a92a',
+  '2645.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-e2732d3e-2e2f-4379-9206-ea54ddd5789f',
+  '2718.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-a6a9ce53-a6c1-4467-981a-bac001c8b1f6',
+  '2891.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-650549b7-1070-486a-a8fb-b7cb8767f7d0',
+  '2918.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-d1ec9e58-a478-4baa-ba27-3762aba16125',
+  '2945.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-64d6a887-e90d-41f1-b7d8-ee7d833fbfb4',
+  '2991.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-52cab241-80cd-4170-9517-e96703fb546c',
+  '3018.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-593e9620-5f77-4ec7-9c3b-e39839c39c60',
+  '3118.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-90cf5f94-090e-4c95-989a-a0fa4f7a1f21',
+  '3191.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-9af90172-9be4-4b5f-b8fc-38395181b735',
+  '3391.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-18864641-e69f-41c4-8bf4-2529e3c6581f',
+  '3418.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-510dbdf0-75fd-4634-ba0a-2ce369f610b1',
+  '3491.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-9d23533e-2cf8-4d2e-8f75-47c76fa923aa',
+  '3591.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-050238a9-b35a-475c-b7e3-c4241607db98',
+  '3891.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-86b0e0cb-ee9e-4416-a22c-5cfd4e5d69e8',
+};
+const mpImplUrl = (v) => MP_IMPL[Number(v).toFixed(2)] || null;
+
 const REDES = {
   nenhuma: { label: 'Sem rede NMEA e sem rede CAN' },
   nmea: { label: 'Rede NMEA com dados de motor convertidos' },
@@ -538,7 +604,7 @@ function payOptsHTML() {
     pagSel = 'cartao';
     return '<div class="pay-opt sel" data-pag="cartao" style="flex:1;min-width:220px">💳 Cartão de crédito — assinatura recorrente</div>' +
       '<div style="flex-basis:100%;font-size:11.5px;color:#8A8F9C;margin-top:6px">No plano mensal a cobrança é <b>recorrente no cartão</b> (débito automático mensal, sem comprometer o limite).' +
-      (implValor() ? ' A implementação é paga por <b>PIX</b> no fechamento.' : '') + '</div>';
+      (implValor() ? ' A implementação (única) é paga no fechamento por <b>PIX ou cartão</b>, como preferir.' : '') + '</div>';
   }
   return '<div class="pay-opt' + (pagSel === 'pix' ? ' sel' : '') + '" data-pag="pix">💠 PIX (QR Code)</div>' +
     '<div class="pay-opt' + (pagSel === 'cartao' ? ' sel' : '') + '" data-pag="cartao">💳 Cartão de crédito</div>';
@@ -660,9 +726,9 @@ function pagamentoHTML() {
   if (rec) {
     /* Mensal: assinatura recorrente no cartão (Mercado Pago) + PIX só da implementação */
     const resumoRec = '<div style="display:inline-block;text-align:left;margin:6px auto 2px;font-size:13px;color:#3A3F4E">' +
-      (implValor() ? '<div>Implementação (hoje, via PIX) <b style="float:right;margin-left:26px">' + fmtBRL(implValor()) + '</b></div>' : '') +
+      (implValor() ? '<div>Implementação (hoje · PIX ou cartão) <b style="float:right;margin-left:26px">' + fmtBRL(implValor()) + '</b></div>' : '') +
       '<div>Assinatura recorrente no cartão <b style="float:right;margin-left:26px">' + fmtBRL(rec.valorMes) + '/mês</b></div>' +
-      '<div style="border-top:1px solid #E3E5EB;margin-top:6px;padding-top:6px;font-weight:800;color:#2D324B">Hoje via PIX <span style="float:right;margin-left:26px;font-size:22px">' + (implValor() ? fmtBRL(implValor()) : 'R$ 0,00') + '</span></div>' +
+      '<div style="border-top:1px solid #E3E5EB;margin-top:6px;padding-top:6px;font-weight:800;color:#2D324B">Hoje (implementação) <span style="float:right;margin-left:26px;font-size:22px">' + (implValor() ? fmtBRL(implValor()) : 'R$ 0,00') + '</span></div>' +
       '</div>';
     const btnRec = rec.url
       ? '<a href="' + rec.url + '" target="_blank" rel="noopener"><button class="btnc" style="background:#2264BE">💳 Ativar assinatura no cartão — ' + fmtBRL(rec.valorMes) + '/mês</button></a>' +
@@ -673,7 +739,11 @@ function pagamentoHTML() {
       '<div style="margin:6px 0 2px;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#8A8F9C;font-weight:700">1 · Assinatura mensal no cartão</div>' +
       btnRec +
       (implValor() && PAGAMENTO.pixChave
-        ? '<div style="margin:16px 0 2px;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#8A8F9C;font-weight:700">2 · Implementação via PIX</div>' +
+        ? '<div style="margin:16px 0 2px;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#8A8F9C;font-weight:700">2 · Implementação — PIX ou cartão, como preferir</div>' +
+          (mpImplUrl(implValor())
+            ? '<a href="' + mpImplUrl(implValor()) + '" target="_blank" rel="noopener"><button class="btnc" style="background:#2264BE">💳 Pagar implementação no cartão — ' + fmtBRL(implValor()) + '</button></a>' +
+              '<div style="font-size:12px;color:#4E5666;margin-bottom:8px">Pagamento único no cartão (Mercado Pago) · ou, se preferir, use o PIX abaixo</div>'
+            : '') +
           '<div id="pixQr"></div>' +
           '<div style="font-size:12.5px;color:#4E5666">Escaneie com o app do seu banco · Favorecido: ' + esc(PAGAMENTO.pixNome) + '</div>' +
           '<div class="copia" id="pixCopia"></div>' +
