@@ -72,6 +72,16 @@
 <p>3.6.5. <b>Consumo e responsabilidade.</b> O volume de dados e o consumo de energia das câmeras variam conforme a demanda de uso e são de conta e responsabilidade exclusiva da CONTRATANTE. A CONTRATADA não responde por franquia, custos, limites, latência, interrupção ou indisponibilidade do serviço de internet contratado pela CONTRATANTE, nem por eventual perda ou não gravação de imagens dela decorrente.</p>
 </div>
 
+<div class="prot" id="clVib" style="display:none">
+<h2>3.7. Monitoramento de vibração VIB (opcional)</h2>
+<p>3.7.1. A CONTRATANTE optou pelo monitoramento preditivo de vibração <b>SAFEBOAT VIB</b> em <span class="mf" data-mf="vibQtd">—</span> motor(es), por meio de sensores autônomos cedidos em <b>comodato</b> (Anexo I), fixados de forma não invasiva (adesivo naval, sem furos) e alimentados por bateria substituível.</p>
+<p>3.7.2. <b>Implantação do VIB.</b> Pela implantação, a CONTRATANTE pagará o valor único de <span class="mf" data-mf="vibImplVal">R$ ____</span>, no ato do aceite, somado à taxa da Cláusula 3.1.</p>
+<p>3.7.3. <b>Acréscimo na assinatura.</b> A assinatura sofre acréscimo de <span class="mf" data-mf="vibUnitAssin">R$ ____</span> por motor monitorado, totalizando <span class="mf" data-mf="vibAssinVal">R$ ____</span>, somado ao valor da Cláusula 3.2 e sujeito ao reajuste da Cláusula 3.4.</p>
+<p>3.7.4. <b>Natureza preditiva e auxiliar.</b> O VIB analisa tendências de vibração (espectro e severidade referenciada na norma ISO 10816) para <b>indicar probabilidade</b> de desgaste ou anomalia mecânica. Trata-se de ferramenta <b>informativa e auxiliar</b>: não constitui diagnóstico definitivo, não garante a antecipação ou detecção de toda e qualquer falha e <b>não substitui</b> as manutenções preventivas, revisões e inspeções recomendadas pelo fabricante do motor, que permanecem de responsabilidade da CONTRATANTE. Aplicam-se integralmente as Cláusulas 5 a 8.</p>
+<p>3.7.5. <b>Aprendizado inicial.</b> Nos primeiros dias de uso o sistema constrói a assinatura de vibração de referência de cada motor; alertas preditivos passam a valer após esse período de aprendizado.</p>
+<p>3.7.6. <b>Comodato.</b> Os sensores VIB permanecem de propriedade exclusiva da CONTRATADA e sujeitam-se integralmente à Cláusula 9, inclusive quanto à guarda, conservação, restituição e responsabilidade por extravio, furto, sinistro ou dano. A substituição de baterias em uso normal é orientada pela CONTRATADA.</p>
+</div>
+
 <div class="prot">
 <h2><span class="mf" data-mf="numTotal">3.6</span>. TOTAL DEVIDO NO FECHAMENTO</h2>
 <p><span class="mf" data-mf="numTotalA">3.6.1</span>. O valor total devido pela CONTRATANTE no ato do aceite, compreendendo a implantação (Cláusula 3.1<span class="mf" data-mf="numTotalCam"></span>) e a primeira parcela da assinatura na modalidade escolhida (Cláusula 3.2), é de <b><span class="mf" data-mf="valorTotal">R$ ____</span></b>, pago em parcela única por PIX ou cartão, conforme selecionado no aceite eletrônico.</p>
@@ -181,8 +191,10 @@
 <table id="anexoValores" style="width:100%;border-collapse:collapse;font-size:13px">
   <tr><td style="padding:6px 0">Implantação do sistema</td><td style="text-align:right"><span class="mf" data-mf="avImpl">—</span></td></tr>
   <tr id="avLinhaCam" style="display:none"><td style="padding:6px 0">Implantação das câmeras</td><td style="text-align:right"><span class="mf" data-mf="avCamImpl">—</span></td></tr>
+  <tr id="avLinhaVib" style="display:none"><td style="padding:6px 0">Implantação do VIB (vibração)</td><td style="text-align:right"><span class="mf" data-mf="avVibImpl">—</span></td></tr>
   <tr><td style="padding:6px 0">Assinatura (<span class="mf" data-mf="avPlano">—</span>)</td><td style="text-align:right"><span class="mf" data-mf="avAssin">—</span></td></tr>
   <tr id="avLinhaCamAssin" style="display:none"><td style="padding:6px 0">Acréscimo das câmeras na assinatura</td><td style="text-align:right"><span class="mf" data-mf="avCamAssin">—</span></td></tr>
+  <tr id="avLinhaVibAssin" style="display:none"><td style="padding:6px 0">Acréscimo do VIB na assinatura</td><td style="text-align:right"><span class="mf" data-mf="avVibAssin">—</span></td></tr>
   <tr><td style="padding:8px 0;border-top:1px solid #ccc;font-weight:700">Total no fechamento</td><td style="text-align:right;border-top:1px solid #ccc;font-weight:700"><span class="mf" data-mf="valorTotal">—</span></td></tr>
 </table>
 </main>
@@ -196,6 +208,8 @@ const SUPA_KEY = 'sb_publishable_IN2C9q60_SfQjDgVwGCzrQ_vPCdoADp';
 const PLANOS = { mensal: { label: 'mensal', valor: 249, sufixo: '/mês' }, anual: { label: 'anual', valor: 2490, sufixo: '/ano' } };
 /* Câmera opcional: implantação (preço + 15%) e acréscimo na assinatura */
 const CAM = { impl: Math.round(411.24 * 1.15 * 100) / 100, mensal: 29.90, anual: 299.00 };
+const VIBC = { impl: 600, mensal: 49.90, anual: 499.00 };
+function vibsKit(kit) { const t = String(kit || '').split(' + ').find((k) => k.indexOf('#VIB=') === 0); return t ? Math.min(3, Math.max(0, parseInt(t.slice(5), 10) || 0)) : 0; }
 const MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
 const fmtBRL = (v) => Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
@@ -255,10 +269,13 @@ function preencherContrato(p) {
   // --- composição do valor ---
   const implSist = Number(p.valor) || 0;
   const camImpl = nc * CAM.impl;
+  const nv = vibsKit(p.kit);
+  const vibImplV = nv ? VIBC.impl : 0;
+  const vibAssinV = nv * (anual ? VIBC.anual : VIBC.mensal);
   const plano = PLANOS[p.plano];
   const assinBase = plano ? plano.valor : 0;
   const camAssin = nc * (anual ? CAM.anual : CAM.mensal);
-  const total = upg ? implSist + camImpl + camAssin : implSist + camImpl + assinBase + camAssin;
+  const total = upg ? implSist + camImpl + camAssin + vibImplV + vibAssinV : implSist + camImpl + vibImplV + assinBase + camAssin + vibAssinV;
 
   if (renov && !implSist) set('valorImpl', 'não se aplica (renovação sem alteração no sistema)');
   else if (renov) set('valorImpl', fmtBRL(implSist) + ' (implantação contratada nesta renovação — itens discriminados no Anexo I)');
@@ -281,13 +298,27 @@ function preencherContrato(p) {
     set('camImplVal', fmtBRL(camImpl));
     set('camUnitAssin', fmtBRL(anual ? CAM.anual : CAM.mensal) + (anual ? '/ano' : '/mês'));
     set('camMensalVal', fmtBRL(camAssin) + (anual ? '/ano' : '/mês'));
-    set('numTotal', '3.7'); set('numTotalA', '3.7.1'); set('numTotalB', '3.7.2');
-    set('numTotalCam', ' e 3.6.2');
     ['avLinhaCam', 'avLinhaCamAssin'].forEach((id) => {
       const tr = document.getElementById(id); if (tr) tr.style.display = '';
     });
     set('avCamImpl', fmtBRL(camImpl));
     set('avCamAssin', fmtBRL(camAssin));
+  }
+  if (nv > 0) {
+    const bv = document.getElementById('clVib');
+    if (bv) bv.style.display = '';
+    set('vibQtd', String(nv));
+    set('vibImplVal', fmtBRL(vibImplV));
+    set('vibUnitAssin', fmtBRL(anual ? VIBC.anual : VIBC.mensal) + (anual ? '/ano' : '/mês'));
+    set('vibAssinVal', fmtBRL(vibAssinV) + (anual ? '/ano' : '/mês'));
+    ['avLinhaVib', 'avLinhaVibAssin'].forEach((id) => { const tr = document.getElementById(id); if (tr) tr.style.display = ''; });
+    set('avVibImpl', fmtBRL(vibImplV));
+    set('avVibAssin', fmtBRL(vibAssinV));
+  }
+  if (nc > 0 || nv > 0) {
+    const nt = (nc > 0 && nv > 0) ? '3.8' : '3.7';
+    set('numTotal', nt); set('numTotalA', nt + '.1'); set('numTotalB', nt + '.2');
+    set('numTotalCam', (nc > 0 ? ' e 3.6.2' : '') + (nv > 0 ? ' e 3.7.2' : ''));
   }
 
   set('valorTotal', fmtBRL(total));
@@ -296,6 +327,7 @@ function preencherContrato(p) {
   const itens = String(p.kit || '').split(' + ')
     .filter((k) => k && k.charAt(0) !== '#');
   if (nc > 0) itens.push(nc + ' × Câmera de segurança Wi-Fi Full HD');
+  if (nv > 0) itens.push(nv + ' × Sensor de vibração VIB (um por motor) + sensor de referência de casco');
   const ul = document.getElementById('anexoItens');
   if (ul && itens.length) {
     ul.innerHTML = '';
