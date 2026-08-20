@@ -212,6 +212,66 @@ const mpPlanoUrl = (tipo, valor) => (MP_PLANOS[tipo] || {})[Number(valor).toFixe
    Links de checkout reutilizáveis criados na conta SAFEBOAT para os valores
    padrão. Valor fora da tabela (edição manual): só PIX. */
 const MP_IMPL = {
+    '1800.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-9a4eeaf4-b33e-4e97-b552-1972102729e5',
+    '2272.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-9fa31e28-16dd-491c-8f39-9735dd610f1b',
+    '2400.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-f6680d4f-bddd-46ac-bdea-17db7c9a776b',
+    '2500.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-11ef69d6-aaad-41a5-9e03-2151a141d0d0',
+    '2700.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-4e814caa-bcef-429a-8f0f-805c4cf35006',
+    '2745.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-c9ae1853-77b4-427f-9fe7-694449d30480',
+    '2800.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-f02014df-8fcd-44ef-a51d-087b733925c5',
+    '2872.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-39c965b7-0ff3-4193-b6b0-6d01539361c7',
+    '2900.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-5b9745c6-9e46-4d27-ba15-90156ba3bf2f',
+    '2972.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-e4b19060-127a-4f32-9cc1-92e503bf19fe',
+    '3100.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-a06cbfe6-0b39-4e4f-9279-7dead6f52ba9',
+    '3172.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-b2f965e9-f1fa-4de6-a73d-77fadc8b6467',
+    '3200.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-d06332f1-2e24-442c-94a0-c6cc0c3c0149',
+    '3218.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-70bd5925-6429-43d5-bade-5222b57d2c93',
+    '3272.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-bfbf1a45-f261-4b09-abab-aea0a17d94b1',
+    '3300.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-8f55fc8f-a2ce-41cc-a217-8c81a1ccd1cd',
+    '3345.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-11bdadc1-0e7f-4b14-995b-40754902ca52',
+    '3372.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-d64d6dd3-d5b8-43c3-8778-e150f8d5fec7',
+    '3400.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-7917f18a-3c85-403b-8e5a-60ff40ff8b94',
+    '3445.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-74e40437-58e1-454a-bd4d-b38f9fdaa05d',
+    '3500.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-4c103b46-c6bf-4022-af00-91fb3c790fcd',
+    '3572.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-6bd7cca8-ebd0-407d-91bc-2aea075bdff8',
+    '3645.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-72b764bc-73d0-4b20-84fd-3b47ec527a4f',
+    '3672.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-84240af8-b995-41d7-a77c-8fdf96abb23e',
+    '3691.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-83602986-7fda-41c6-b3a3-b730e2d1c69b',
+    '3745.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-1ce378d9-e5e3-45da-921b-c0f98833507c',
+    '3772.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-66a4a888-8421-4622-a9a7-a088748f27d6',
+    '3800.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-5bb82818-9893-4c34-ae2c-7328b840a720',
+    '3818.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-b26e77e0-9836-49e2-aae1-7f401443a47d',
+    '3845.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-0b6b417b-aa3c-47f0-8470-7488354452fa',
+    '3872.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-84bf573b-02bf-4b64-81d1-9ff20d9bbb2b',
+    '3918.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-5084a352-6ad4-4502-a7a7-5e9a571d201d',
+    '3972.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-f52546f0-9c1f-427f-9439-839ea7de71db',
+    '4045.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-50483c94-de9f-4ff8-a1e4-cda0db97e238',
+    '4118.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-d2a120cc-ebd9-44d0-95d1-e7d591c6d5fc',
+    '4145.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-630f6c4f-b8c6-4d76-b125-30a54ab661d2',
+    '4218.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-465b8c79-14a7-4541-ac80-2a1f8898a771',
+    '4245.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-c537ed49-2269-4cc6-9008-2f705894bfbc',
+    '4272.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-43d9bf3e-e2ee-4d55-8204-ce46eee31804',
+    '4291.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-df66e06b-6f80-4551-9c6f-04fae768dbbc',
+    '4318.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-d44ea1f7-4842-4c52-8f1c-33d82b9ac00a',
+    '4345.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-1496f681-48e0-4408-bcec-6ac5661a870b',
+    '4391.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-2c2d230b-8533-4764-b39d-76b47bed837c',
+    '4445.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-88f20d32-5f67-4621-849b-5e3965a8d6cd',
+    '4518.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-11a79fde-3f50-4f4b-9a38-8201de5d16f5',
+    '4591.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-0c5fb6ce-e532-4da0-9c05-c5140d4c3b12',
+    '4618.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-c5a8bfe9-2026-4750-b77c-be4fdecb5489',
+    '4691.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-33127667-8f40-4698-9ded-11d3a61112c1',
+    '4718.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-941c9880-8d89-4001-98c6-08d966950772',
+    '4745.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-888ab4c4-0747-4220-95a0-711087d3cce2',
+    '4791.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-ce0ba86f-421a-4eb2-8e63-764b384b6cb7',
+    '4818.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-439abbc0-0f9c-4193-a863-ff62b6a783d1',
+    '4918.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-b34b9642-a9e8-47d2-a35c-d2f626e3ea58',
+    '4991.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-da58e50a-b5d3-4df8-b966-36dea792e39b',
+    '5091.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-765f5ffe-b949-45f2-8e8e-80be2dc29f63',
+    '5191.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-172be13c-698b-4eeb-b1dd-019b92128e42',
+    '5218.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-a5d32b99-d75e-4298-af0b-39491f83cb5a',
+    '5291.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-59dbf240-b1a0-47d8-827b-5b84bc2a9806',
+    '5391.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-eb58a464-ba6e-467a-8a71-d50ad55402f9',
+    '5691.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-e1683b08-9aa4-49ae-abc9-eb26207c7bd3',
     '900.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-5bb18af1-5407-4651-bd07-a727a64689f6',
     '1200.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-667cd32c-cf7a-4413-8b28-6cd7a744bb66',
     '1372.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-fb2128e3-d147-4414-b421-ed87958f0526',
@@ -312,6 +372,91 @@ const mpImplUrl = (v) => MP_IMPL[Number(v).toFixed(2)] || null;
    por conta do comprador — padrão MP). Total = implementação + anuidade.
    Valor fora da tabela: só PIX. */
 const MP_ANUAL = {
+    '4988.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-b4da6bcc-3474-45d1-88a7-71ef23a25afa',
+    '5288.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-0e633a9f-9e9a-43d8-8dba-80313253957a',
+    '5759.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-f976a9ad-1211-44cd-95b3-802603420843',
+    '5787.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-789d71f9-c680-4663-9a8e-7338ad929a37',
+    '5988.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-858e43f1-d887-4e89-b13f-c92f77d7455c',
+    '6059.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-b22d9889-c9ba-42ff-b6c4-c25dd09f7d22',
+    '6188.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-f25c380f-efa4-4173-b988-aabc597e40b1',
+    '6288.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-fac3219c-4d72-482c-b338-b79df67730aa',
+    '6387.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-fa0dc1ae-936c-4cc8-b79a-1545eaae8bee',
+    '6388.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-22d5ebd1-bb3e-496b-8002-b2c356e81c5f',
+    '6487.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-e0f43b4f-9d04-49ab-9097-a1f44c735b94',
+    '6531.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-558edd1c-c323-482d-a876-76f111853296',
+    '6558.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-a001bb3e-75fa-4453-85d9-ba5b4bfe95f0',
+    '6688.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-3a7c9898-2695-473d-af34-f74ad3a56419',
+    '6759.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-e885df61-358c-4662-9254-b2f98a5b477e',
+    '6787.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-171d0c07-a9fe-4255-9132-4a8164d4bd86',
+    '6831.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-999daad3-e3a7-4f43-ad61-fe31ecb0eb1e',
+    '6887.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-399878ff-ad1d-4217-b9b9-1d646b83299d',
+    '6959.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-b1d44fe2-5aa6-4330-abcb-19a2bf228c8c',
+    '7059.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-30aec44a-0266-40e5-9db9-5f27a598c68c',
+    '7087.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-84ec0886-b5a8-4b58-9151-8cc43193f555',
+    '7158.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-5303f703-369e-4007-955a-df2812340437',
+    '7159.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-cabc64da-81bc-41a5-9966-5e27f810d147',
+    '7258.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-691677a6-5415-4eac-8e57-b55a3ef04940',
+    '7287.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-5714ca48-13a4-429e-bf4b-969030b894cc',
+    '7303.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-45c7816b-534b-4a1a-b706-62d2f09a3560',
+    '7330.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-bd41e2de-f901-45f9-9107-a15d581fd5d6',
+    '7387.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-9026790f-c9b0-4e29-86dc-ec43b58b58fb',
+    '7459.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-b79e57ee-f7ec-433b-82b9-4456e4d51668',
+    '7487.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-3b24f018-a72f-4669-8e3a-f2057117dc61',
+    '7531.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-62ef7b01-92e7-49be-bb21-a9fdc36e4998',
+    '7558.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-c2f9e9c8-ef90-439a-81bc-65b54fadbcfd',
+    '7603.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-7aad1182-0a6c-4a13-8809-a5d0c4912384',
+    '7658.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-b3d710bc-3f65-4314-a2b7-462f35023ec2',
+    '7731.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-3ba880fe-1d60-4a4e-94f9-9c38078986f6',
+    '7787.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-0cd99252-4d43-4266-8be9-7fc59b0c908e',
+    '7831.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-f97d1e39-6659-484d-a772-3694b40e3e08',
+    '7858.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-511a8625-860a-4441-aade-23378f30c146',
+    '7930.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-16f05c99-bb05-4f96-9209-4de61276d49e',
+    '7931.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-13c2c163-35fa-4e4a-af59-2c0b33cda61b',
+    '8030.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-5c46ec67-7a67-4f71-9e05-cfed7f22ce61',
+    '8058.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-fb3565fc-1cf9-4b1a-b6ba-7c0d80552e0c',
+    '8075.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-2884149a-14b0-4879-a8e5-1ffe80529239',
+    '8102.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-3167a3be-b1d5-430f-bf7f-19ca258930c4',
+    '8158.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-84bcef80-ad97-487c-8dea-23585f28130e',
+    '8231.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-5433d30c-8fa6-4581-a2ff-bdb039121e4b',
+    '8258.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-eda5cf85-5dac-466f-8d6f-7909db6df5f2',
+    '8303.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-9936ab83-5e9a-479b-a2c0-c5e78069d8d9',
+    '8330.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-2126797f-7448-4693-b206-5f8343a7b2c2',
+    '8375.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-e4d7683c-a190-4e64-b96a-31a46d3e8a8a',
+    '8430.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-1fca9f85-6bd0-4230-94ca-3ff4565a8156',
+    '8503.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-46e096ea-17b2-445c-abf0-4a3d6b8c5c33',
+    '8558.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-94a8fbdb-2e26-4f67-8e4f-51e1e8e616e9',
+    '8603.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-036bad5b-d38f-4172-a5fb-7f454b11cf6d',
+    '8630.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-8b2c9f11-91c9-4e2b-afd0-ef2c8dc4158b',
+    '8702.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-7bf30fbd-1115-4f10-8990-b2351d413fd6',
+    '8703.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-efbd7e0f-aad5-4b6e-b0a3-8037e9cc8cd1',
+    '8802.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-3c8b21c1-cac3-4c80-8410-1a59be921b88',
+    '8830.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-4d2537a8-0df1-48f4-abca-3e5fd683cac7',
+    '8874.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-a65dc0eb-c5e5-468f-a5f9-3db6e8e8ca03',
+    '8930.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-7fed4bf6-92e1-49ea-a41a-29b6650a8c3b',
+    '9003.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-8f24d089-fcc5-43d1-bc9a-0cf06f923d06',
+    '9030.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-1256c5bd-eeaf-45c0-aefe-f1a2c75a33ec',
+    '9075.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-3648316c-2b9e-423e-a339-d4c81aa03a43',
+    '9102.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-cdedb3df-5266-4d0b-9b3a-c7b1acfa17fe',
+    '9202.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-2d8cc153-bb5a-4ae3-9aed-700923807b30',
+    '9275.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-697d2307-2f08-457d-9c1f-6d43736b42b3',
+    '9330.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-b3b8833b-6963-4dbb-847d-9524f986a722',
+    '9375.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-a1314f09-db47-4007-83a6-c9eb4c6ecb8d',
+    '9402.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-24c236b1-0435-47b9-b804-ebd91b93f439',
+    '9474.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-ba320f01-580b-42be-a8ef-00ba7bfabd9c',
+    '9475.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-ac31335b-cb82-4582-abe3-0499f0609d6d',
+    '9574.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-9cc6cc47-60e1-45fc-965b-77566ee6be9a',
+    '9602.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-931ca221-87a5-45b3-8ebe-6f2d366c31a5',
+    '9702.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-2c07e270-201f-44c7-9806-db2c37c063bd',
+    '9775.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-bf9b4b72-54b3-41aa-b6e8-a5042b647683',
+    '9802.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-3cbbfef3-c584-4182-a077-b1b1dbd38768',
+    '9874.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-d705bf94-2ded-4ece-a416-e31ff16f94dd',
+    '9974.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-d68ef6a9-edac-4aec-be8a-5affa6dfd7d9',
+    '10102.79': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-51660b07-6535-46e2-a6bc-370d3b6453ae',
+    '10174.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-61d5ba2e-ccce-46ac-b707-aded8cc562a3',
+    '10374.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-6251d5a1-7c74-42a3-b3d3-1645db8c8a45',
+    '10474.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-9fe166ff-1c05-4b53-9d63-c9a6b210333a',
+    '10574.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-2e8d6e32-9093-49ef-8544-065286efa253',
+    '10874.72': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-0f306de5-a363-4d6f-81e1-260cbc380a67',
     '3589.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-80cf1a23-7faf-4ab6-8499-94eb46358cde',
     '3889.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-a4cb6339-4c5d-4948-afd3-31232a6a0d4c',
     '3989.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-1e01c6bb-4959-442a-b33d-9a5584f16743',
@@ -593,8 +738,9 @@ const KIT_IMGS = {
    Requer Starlink a bordo; consumo de dados/energia por conta do usuário. */
 const CAMERA = { nome: 'Câmera Wi-Fi Full HD', precoUnit: 411.24, markup: 0.15, mensal: 29.90, anual: 299.00, img: 'img/eq-camera.png' };
 /* VIB — sensor de vibração autônomo com IA (manutenção preditiva de motores).
-   Opcional B2C: 1 a 3 motores. Implementação única R$600 (independe da qtde);
-   assinatura +R$49,90/motor/mês ou +R$499,00/motor/ano (regra dos 10 meses). */
+   Opcional B2C: 1 a 3 motores. Implementação R$600 POR MOTOR (cobre o custo
+   do hardware de cada unidade); assinatura +R$49,90/motor/mês ou
+   +R$499,00/motor/ano (regra dos 10 meses). */
 const VIB = { nome: 'VIB — sensor de vibração', mensal: 49.90, anual: 499.00, impl: 600, img: 'img/eq-vib.png' };
 const camUnitImpl = () => Math.round(CAMERA.precoUnit * (1 + CAMERA.markup) * 100) / 100;
 
@@ -730,7 +876,7 @@ function vibs() {
   const t = String(p.kit || '').split(' + ').find((k) => k.indexOf('#VIB=') === 0);
   return t ? Math.min(3, Math.max(0, parseInt(t.slice(5), 10) || 0)) : 0;
 }
-const vibImpl = () => (vibs() ? VIB.impl : 0);             // implementação única, independe da qtde
+const vibImpl = () => vibs() * VIB.impl;                   // implementação por motor (cobre o hardware de cada unidade)
 const vibAssin = (plano) => vibs() * (plano === 'anual' ? VIB.anual : VIB.mensal);
 /* O que a implementação cobre — em upgrade e renovação ela pode ser leitura de
    motorização, sensor de corrente, câmeras, ou uma combinação. */
@@ -831,7 +977,7 @@ function vibSecaoHTML() {
         '<p>O que ele antecipa: <b>problemas de combustão do motor</b>, <b>desalinhamento de eixos</b>, <b>desbalanceamento de hélices</b>, <b>falhas estruturais</b> (coxins, fixações e buchas) e <b>falhas em rolamentos</b> — tudo aparece na vibração <b>muito antes</b> de virar quebra, fumaça ou reboque. O VIB acompanha a tendência e avisa no app enquanto o reparo ainda é simples e barato.</p>' +
         '<div class="cam-req" style="background:#EEF3FB;border-color:#C6D8F2;color:#16335E">🌊 <b>Feito para o mar:</b> a análise espectral (FFT, severidade conforme a norma ISO 10816) separa o balanço das ondas da assinatura mecânica do motor — direto no sensor, sem instalação extra. Sem fios: fixação adesiva naval e bateria substituível, sem furos e sem mexer na elétrica.</div>' +
         '<div class="cam-preco">' +
-          '<div><span>Implementação</span><b>' + fmtBRL(VIB.impl) + ' (única — cobre até 3 motores)</b></div>' +
+          '<div><span>Implementação</span><b>' + n + ' × ' + fmtBRL(VIB.impl) + ' = ' + fmtBRL(n * VIB.impl) + '</b></div>' +
           '<div><span>Assinatura mensal</span><b>+ ' + fmtBRL(VIB.mensal) + ' por motor/mês' + (n > 1 ? ' (' + n + '× = ' + fmtBRL(n * VIB.mensal) + '/mês)' : '') + '</b></div>' +
           '<div><span>Assinatura anual</span><b>+ ' + fmtBRL(VIB.anual) + ' por motor/ano' + (n > 1 ? ' (' + n + '× = ' + fmtBRL(n * VIB.anual) + '/ano)' : '') + ' <span style="font-weight:600;color:#0B6B4D">· paga 10 meses</span></b></div>' +
         '</div>' +

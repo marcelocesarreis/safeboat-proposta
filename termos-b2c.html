@@ -75,7 +75,7 @@
 <div class="prot" id="clVib" style="display:none">
 <h2>3.7. Monitoramento de vibração VIB (opcional)</h2>
 <p>3.7.1. A CONTRATANTE optou pelo monitoramento preditivo de vibração <b>SAFEBOAT VIB</b> em <span class="mf" data-mf="vibQtd">—</span> motor(es), por meio de sensores autônomos cedidos em <b>comodato</b> (Anexo I), fixados de forma não invasiva (adesivo naval, sem furos) e alimentados por bateria substituível.</p>
-<p>3.7.2. <b>Implantação do VIB.</b> Pela implantação, a CONTRATANTE pagará o valor único de <span class="mf" data-mf="vibImplVal">R$ ____</span>, no ato do aceite, somado à taxa da Cláusula 3.1.</p>
+<p>3.7.2. <b>Implantação do VIB.</b> Pela implantação, a CONTRATANTE pagará o valor de <span class="mf" data-mf="vibImplVal">R$ ____</span>, correspondente a R$ 600,00 (seiscentos reais) por motor monitorado, em parcela única no ato do aceite, somado à taxa da Cláusula 3.1.</p>
 <p>3.7.3. <b>Acréscimo na assinatura.</b> A assinatura sofre acréscimo de <span class="mf" data-mf="vibUnitAssin">R$ ____</span> por motor monitorado, totalizando <span class="mf" data-mf="vibAssinVal">R$ ____</span>, somado ao valor da Cláusula 3.2 e sujeito ao reajuste da Cláusula 3.4.</p>
 <p>3.7.4. <b>Natureza preditiva e auxiliar.</b> O VIB analisa tendências de vibração (espectro e severidade referenciada na norma ISO 10816) para <b>indicar probabilidade</b> de desgaste ou anomalia mecânica. Trata-se de ferramenta <b>informativa e auxiliar</b>: não constitui diagnóstico definitivo, não garante a antecipação ou detecção de toda e qualquer falha e <b>não substitui</b> as manutenções preventivas, revisões e inspeções recomendadas pelo fabricante do motor, que permanecem de responsabilidade da CONTRATANTE. Aplicam-se integralmente as Cláusulas 5 a 8.</p>
 <p>3.7.5. <b>Aprendizado inicial.</b> Nos primeiros dias de uso o sistema constrói a assinatura de vibração de referência de cada motor; alertas preditivos passam a valer após esse período de aprendizado.</p>
@@ -270,7 +270,7 @@ function preencherContrato(p) {
   const implSist = Number(p.valor) || 0;
   const camImpl = nc * CAM.impl;
   const nv = vibsKit(p.kit);
-  const vibImplV = nv ? VIBC.impl : 0;
+  const vibImplV = nv * VIBC.impl;
   const vibAssinV = nv * (anual ? VIBC.anual : VIBC.mensal);
   const plano = PLANOS[p.plano];
   const assinBase = plano ? plano.valor : 0;
