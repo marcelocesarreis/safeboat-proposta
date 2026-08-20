@@ -327,7 +327,7 @@ function preencherContrato(p) {
   const itens = String(p.kit || '').split(' + ')
     .filter((k) => k && k.charAt(0) !== '#');
   if (nc > 0) itens.push(nc + ' × Câmera de segurança Wi-Fi Full HD');
-  if (nv > 0) itens.push(nv + ' × Sensor de vibração VIB (um por motor) + sensor de referência de casco');
+  if (nv > 0) itens.push(nv + ' × Sensor de vibração VIB (um por motor)');
   const ul = document.getElementById('anexoItens');
   if (ul && itens.length) {
     ul.innerHTML = '';

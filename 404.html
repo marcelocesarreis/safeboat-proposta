@@ -828,8 +828,8 @@ function vibSecaoHTML() {
       '<div class="eqcard cam-img"><img src="' + VIB.img + '" alt="' + esc(VIB.nome) + '"><b>' + esc(VIB.nome) + ' · ' + n + ' motor' + (n > 1 ? 'es' : '') + '</b></div>' +
       '<div class="cam-tx">' +
         '<p><b>Sente o desbalanceamento meses antes da quebra — mesmo com o mar mexendo.</b> Um sensor autônomo colado em cada motor mede a vibração continuamente e a <b>IA da SAFEBOAT</b> aprende, sozinha, a assinatura mecânica do SEU motor na primeira semana de uso.</p>' +
-        '<p>Desbalanceamento, desalinhamento, folga estrutural e desgaste de rolamento aparecem na vibração <b>muito antes</b> de virarem quebra, fumaça ou reboque — o VIB acompanha a tendência e avisa no app enquanto o reparo ainda é simples e barato.</p>' +
-        '<div class="cam-req" style="background:#EEF3FB;border-color:#C6D8F2;color:#16335E">🌊 <b>Cancelamento de mar:</b> um sensor de referência no casco separa o balanço das ondas da vibração do motor — a análise (espectro FFT, severidade conforme a norma ISO 10816) enxerga só a mecânica. Sem fios: fixação adesiva naval e bateria substituível, sem furos e sem mexer na elétrica.</div>' +
+        '<p>O que ele antecipa: <b>problemas de combustão do motor</b>, <b>desalinhamento de eixos</b>, <b>desbalanceamento de hélices</b>, <b>falhas estruturais</b> (coxins, fixações e buchas) e <b>falhas em rolamentos</b> — tudo aparece na vibração <b>muito antes</b> de virar quebra, fumaça ou reboque. O VIB acompanha a tendência e avisa no app enquanto o reparo ainda é simples e barato.</p>' +
+        '<div class="cam-req" style="background:#EEF3FB;border-color:#C6D8F2;color:#16335E">🌊 <b>Feito para o mar:</b> a análise espectral (FFT, severidade conforme a norma ISO 10816) separa o balanço das ondas da assinatura mecânica do motor — direto no sensor, sem instalação extra. Sem fios: fixação adesiva naval e bateria substituível, sem furos e sem mexer na elétrica.</div>' +
         '<div class="cam-preco">' +
           '<div><span>Implementação</span><b>' + fmtBRL(VIB.impl) + ' (única — cobre até 3 motores)</b></div>' +
           '<div><span>Assinatura mensal</span><b>+ ' + fmtBRL(VIB.mensal) + ' por motor/mês' + (n > 1 ? ' (' + n + '× = ' + fmtBRL(n * VIB.mensal) + '/mês)' : '') + '</b></div>' +
@@ -1245,7 +1245,7 @@ function preencherContratoDOM(doc, ac) {
   // Anexo I — itens cedidos em comodato
   const itens = String(p.kit || '').split(' + ').filter((k) => k && k.charAt(0) !== '#');
   if (n > 0) itens.push(n + ' × Câmera de segurança Wi-Fi Full HD');
-  if (nv > 0) itens.push(nv + ' × Sensor de vibração VIB (um por motor) + sensor de referência de casco');
+  if (nv > 0) itens.push(nv + ' × Sensor de vibração VIB (um por motor)');
   const ul = doc.getElementById('anexoItens');
   if (ul && itens.length) {
     ul.innerHTML = '';
