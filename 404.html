@@ -61,6 +61,10 @@
   .cam-preco > div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; background: #F4F5F8; border-radius: 10px; padding: 10px 14px; }
   .cam-preco span { font-size: 12.5px; text-transform: uppercase; letter-spacing: .5px; color: #8A8F9C; font-weight: 700; }
   .cam-preco b { font-size: 14px; color: #2D324B; }
+  .saiba { background: none; border: none; padding: 0; margin: 2px 0 10px; color: #2264BE; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .saiba:hover { text-decoration: underline; }
+  .mais[hidden] { display: none; }
+  @media print { .mais { display: block !important; } .saiba { display: none; } }
   @media (max-width: 560px) { .cam-wrap { grid-template-columns: 1fr; } .cam-img { max-width: 200px; margin: 0 auto; } }
   .mongrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
   .moncard { background: #fff; border-radius: 16px; padding: 22px; box-shadow: 0 2px 10px rgba(26,31,43,.08); }
@@ -973,9 +977,12 @@ function vibSecaoHTML() {
     '<div class="cam-wrap">' +
       '<div class="eqcard cam-img"><img src="' + VIB.img + '" alt="' + esc(VIB.nome) + '"><b>' + esc(VIB.nome) + ' · ' + n + ' motor' + (n > 1 ? 'es' : '') + '</b></div>' +
       '<div class="cam-tx">' +
-        '<p><b>Sente o desbalanceamento meses antes da quebra — mesmo com o mar mexendo.</b> Um sensor autônomo colado em cada motor mede a vibração continuamente e a <b>IA da SAFEBOAT</b> aprende, sozinha, a assinatura mecânica do SEU motor na primeira semana de uso.</p>' +
-        '<p>O que ele antecipa: <b>problemas de combustão do motor</b>, <b>desalinhamento de eixos</b>, <b>desbalanceamento de hélices</b>, <b>falhas estruturais</b> (coxins, fixações e buchas) e <b>falhas em rolamentos</b> — tudo aparece na vibração <b>muito antes</b> de virar quebra, fumaça ou reboque. O VIB acompanha a tendência e avisa no app enquanto o reparo ainda é simples e barato.</p>' +
-        '<div class="cam-req" style="background:#EEF3FB;border-color:#C6D8F2;color:#16335E">🌊 <b>Feito para o mar:</b> a análise espectral (FFT, severidade conforme a norma ISO 10816) separa o balanço das ondas da assinatura mecânica do motor — direto no sensor, sem instalação extra. Sem fios: fixação adesiva naval e bateria substituível, sem furos e sem mexer na elétrica.</div>' +
+        '<p><b>O motor avisa meses antes de quebrar.</b> Um sensor em cada motor e a <b>IA da SAFEBOAT</b> aprendem a vibração do seu motor e antecipam combustão irregular, desalinhamento, hélice desbalanceada, coxins e rolamentos — antes de virar quebra ou reboque.</p>' +
+        '<button type="button" class="saiba" data-alvo="vibMais">Saiba mais ▾</button>' +
+        '<div id="vibMais" class="mais" hidden>' +
+          '<p>O que ele antecipa: <b>problemas de combustão do motor</b>, <b>desalinhamento de eixos</b>, <b>desbalanceamento de hélices</b>, <b>falhas estruturais</b> (coxins, fixações e buchas) e <b>falhas em rolamentos</b>. Tudo aparece na vibração muito antes de virar quebra, fumaça ou reboque — o VIB acompanha a tendência e avisa no app enquanto o reparo ainda é simples e barato. A IA aprende, sozinha, a assinatura do SEU motor na primeira semana de uso.</p>' +
+          '<div class="cam-req" style="background:#EEF3FB;border-color:#C6D8F2;color:#16335E">🌊 <b>Feito para o mar:</b> a análise espectral (FFT, severidade conforme a norma ISO 10816) separa o balanço das ondas da assinatura mecânica do motor — direto no sensor. Sem fios: fixação adesiva naval e bateria substituível, sem furos e sem mexer na elétrica.</div>' +
+        '</div>' +
         '<div class="cam-preco">' +
           '<div><span>Implementação</span><b>' + n + ' × ' + fmtBRL(VIB.impl) + ' = ' + fmtBRL(n * VIB.impl) + '</b></div>' +
           '<div><span>Assinatura mensal</span><b>+ ' + fmtBRL(VIB.mensal) + ' por motor/mês' + (n > 1 ? ' (' + n + '× = ' + fmtBRL(n * VIB.mensal) + '/mês)' : '') + '</b></div>' +
@@ -1435,6 +1442,16 @@ async function aceitarProposta() {
   renderAceite();
   document.getElementById('secAceite').scrollIntoView({ behavior: 'smooth' });
 }
+
+/* "Saiba mais": abre/fecha detalhes sem poluir a leitura; no PDF sai tudo. */
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('.saiba');
+  if (!b) return;
+  const alvo = document.getElementById(b.dataset.alvo);
+  if (!alvo) return;
+  alvo.hidden = !alvo.hidden;
+  b.textContent = alvo.hidden ? 'Saiba mais ▾' : 'Mostrar menos ▴';
+});
 
 main();
 </script>
