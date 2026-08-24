@@ -912,6 +912,10 @@ function planoValor(plano) {
    O cliente vê um número só (ex.: 249 + 29,90 = 278,90); o detalhe por câmera
    fica na seção da câmera, para o total não ficar fragmentado. */
 const assinValor = (plano) => planoValor(plano) + camAssin(plano) + vibAssin(plano);
+/* Economia do plano anual: 12 mensalidades completas menos a anuidade —
+   com câmeras e VIB o desconto real cresce (2 mensalidades de TUDO). */
+const economiaAnual = () => 12 * assinValor('mensal') - assinValor('anual');
+const seloAnual = () => '2 meses grátis — economize ' + fmtBRL(economiaAnual()) + '/ano';
 /* Upgrade: a assinatura atual é mantida — paga-se a implementação (do upgrade e
    das câmeras) e o acréscimo das câmeras na assinatura. Renovação e instalação
    nova: implementação + assinatura, ambas já com as câmeras embutidas. */
@@ -1065,7 +1069,7 @@ function render() {
             : '') +
           '<div class="card plan" data-plano="mensal"><div class="mark"></div><div class="t">Renovação mensal</div><div class="v">' + fmtBRL(assinValor('mensal')) + '<small>/mês</small></div><div class="d">Renova mês a mês. Cancele quando quiser.</div>' + camAssinNota('mensal') + '</div>' +
           '<div class="oumark">OU</div>' +
-          '<div class="card plan" data-plano="anual"><div class="badge">' + PLANOS.anual.destaque + '</div><div class="mark"></div><div class="t">Renovação anual</div><div class="v">' + fmtBRL(assinValor('anual')) + '<small>/ano</small></div><div class="d">Equivale a ' + fmtBRL(assinValor('anual') / 12) + '/mês. 12 meses de monitoramento contínuo.</div>' + camAssinNota('anual') + '</div>' +
+          '<div class="card plan" data-plano="anual"><div class="badge">' + seloAnual() + '</div><div class="mark"></div><div class="t">Renovação anual</div><div class="v">' + fmtBRL(assinValor('anual')) + '<small>/ano</small></div><div class="d">Equivale a ' + fmtBRL(assinValor('anual') / 12) + '/mês. 12 meses de monitoramento contínuo.</div>' + camAssinNota('anual') + '</div>' +
         '</div></section>'
       : (upg
       ? '<div class="invest-hint">Você já é cliente SAFEBOAT. Este <b>upgrade</b> tem uma <b>implementação única de ' + fmtBRL(implValor()) + '</b> (' + listaImpl() + '). Sua <b>assinatura atual é mantida</b>' + (cams() ? ', com o acréscimo das câmeras' : ' — sem nova cobrança') + '. Confirme abaixo qual é o seu plano atual.</div>' +
@@ -1086,7 +1090,7 @@ function render() {
           '<div class="plusmark">+</div>' +
           '<div class="card plan" data-plano="mensal"><div class="mark"></div><div class="t">Assinatura mensal</div><div class="v">' + fmtBRL(assinValor('mensal')) + '<small>/mês</small></div><div class="d">1ª mensalidade paga no fechamento. O período de uso só começa após a implementação.</div>' + camAssinNota('mensal') + '</div>' +
           '<div class="oumark">OU</div>' +
-          '<div class="card plan" data-plano="anual"><div class="badge">' + PLANOS.anual.destaque + '</div><div class="mark"></div><div class="t">Assinatura anual</div><div class="v">' + fmtBRL(assinValor('anual')) + '<small>/ano</small></div><div class="d">Equivale a ' + fmtBRL(assinValor('anual') / 12) + '/mês. O período anual só começa após a implementação.</div>' + camAssinNota('anual') + '</div>' +
+          '<div class="card plan" data-plano="anual"><div class="badge">' + seloAnual() + '</div><div class="mark"></div><div class="t">Assinatura anual</div><div class="v">' + fmtBRL(assinValor('anual')) + '<small>/ano</small></div><div class="d">Equivale a ' + fmtBRL(assinValor('anual') / 12) + '/mês. O período anual só começa após a implementação.</div>' + camAssinNota('anual') + '</div>' +
         '</div></section>'))) +
     '<section id="secAceite"></section>' +
     '</main>' +
