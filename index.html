@@ -707,7 +707,6 @@ const MP_ANUAL = {
 function cartaoAvulsoUrl() {
   if (recorrenciaInfo(p.plano) || fleet()) return null;
   const total = totalCom(p.plano);
-  if (isUpgrade()) return mpImplUrl(total);
   return MP_ANUAL[Number(total).toFixed(2)] || null;
 }
 
@@ -916,23 +915,17 @@ const assinValor = (plano) => planoValor(plano) + camAssin(plano) + vibAssin(pla
    com câmeras e VIB o desconto real cresce (2 mensalidades de TUDO). */
 const economiaAnual = () => 12 * assinValor('mensal') - assinValor('anual');
 const seloAnual = () => '2 meses grátis — economize ' + fmtBRL(economiaAnual()) + '/ano';
-/* Upgrade: a assinatura atual é mantida — paga-se a implementação (do upgrade e
+/* Upgrade: a assinatura mantém o VALOR, mas passa a ser contratada pelo sistema
+   (mensal recorrente no cartão ou anuidade) — paga-se a implementação (do upgrade e
    das câmeras) e o acréscimo das câmeras na assinatura. Renovação e instalação
    nova: implementação + assinatura, ambas já com as câmeras embutidas. */
-const totalCom = (plano) => isUpgrade()
-  ? implValor() + camAssin(plano) + vibAssin(plano)
-  : implValor() + assinValor(plano);
+const totalCom = (plano) => implValor() + assinValor(plano);
 
 /* Recorrência no cartão: obrigatória sempre que houver valor MENSAL a receber
    (B2C — frotas B2B são faturadas). Devolve o valor mensal e o link do plano. */
 function recorrenciaInfo(plano) {
   if (plano !== 'mensal' || fleet()) return null;
-  if (isUpgrade()) {
-    const v = camAssin('mensal') + vibAssin('mensal');
-    if (!v) return null;                           // upgrade sem opcionais: nada mensal novo
-    return { valorMes: v, url: mpPlanoUrl('cam', v) };
-  }
-  const v = assinValor('mensal');
+  const v = assinValor('mensal');   // upgrade e renovação: assinatura cheia pelo sistema
   return { valorMes: v, url: mpPlanoUrl('full', v) };
 }
 const recorrenciaObrigatoria = (plano) => !!recorrenciaInfo(plano);
@@ -1072,13 +1065,13 @@ function render() {
           '<div class="card plan" data-plano="anual"><div class="badge">' + seloAnual() + '</div><div class="mark"></div><div class="t">Renovação anual</div><div class="v">' + fmtBRL(assinValor('anual')) + '<small>/ano</small></div><div class="d">Equivale a ' + fmtBRL(assinValor('anual') / 12) + '/mês. 12 meses de monitoramento contínuo.</div>' + camAssinNota('anual') + '</div>' +
         '</div></section>'
       : (upg
-      ? '<div class="invest-hint">Você já é cliente SAFEBOAT. Este <b>upgrade</b> tem uma <b>implementação única de ' + fmtBRL(implValor()) + '</b> (' + listaImpl() + '). Sua <b>assinatura atual é mantida</b>' + (cams() ? ', com o acréscimo das câmeras' : ' — sem nova cobrança') + '. Confirme abaixo qual é o seu plano atual.</div>' +
+      ? '<div class="invest-hint">Você já é cliente SAFEBOAT. Este <b>upgrade</b> tem uma <b>implementação única de ' + fmtBRL(implValor()) + '</b> (' + listaImpl() + '). Sua assinatura — <b>mesmo valor de hoje</b> — passa a ser contratada e cobrada <b>pelo sistema SAFEBOAT</b>: escolha mensal ou anual abaixo.</div>' +
         '<div class="invest">' +
           '<div class="card"><div class="t">Upgrade · implementação única</div><div class="v">' + fmtBRL(implValor()) + '</div><div class="d">Inclui <b>' + listaImpl() + '</b>. Instalação por equipe técnica SAFEBOAT em <b>até 30 dias</b> após o pagamento, pago no fechamento.' + (cams() ? ' <b style="color:#2264BE">Câmeras: ' + fmtBRL(camImpl()) + '.</b>' : '') + '</div></div>' +
           '<div class="plusmark" style="background:#0B6B4D">✓</div>' +
-          '<div class="card plan" data-plano="mensal"><div class="mark"></div><div class="t">Meu plano atual é mensal</div><div class="v" style="font-size:19px">' + (cams() ? fmtBRL(planoValor('mensal') + camAssin('mensal')) : 'Mantido') + '</div><div class="d">Sua mensalidade de ' + fmtBRL(planoValor('mensal')) + ' segue igual' + (cams() ? ', com <b>' + fmtBRL(camAssin('mensal')) + '</b> de acréscimo das câmeras.' : ' — <b>sem nova cobrança</b> neste upgrade.') + '</div></div>' +
+          '<div class="card plan" data-plano="mensal"><div class="mark"></div><div class="t">Assinatura mensal</div><div class="v">' + fmtBRL(assinValor('mensal')) + '<small>/mês</small></div><div class="d">Mesmo valor da sua assinatura atual — agora com cobrança recorrente pelo sistema (1ª cobrança na ativação).</div>' + camAssinNota('mensal') + '</div>' +
           '<div class="oumark">OU</div>' +
-          '<div class="card plan" data-plano="anual"><div class="mark"></div><div class="t">Meu plano atual é anual</div><div class="v" style="font-size:19px">' + (cams() ? fmtBRL(planoValor('anual') + camAssin('anual')) : 'Mantido') + '</div><div class="d">Sua anuidade de ' + fmtBRL(planoValor('anual')) + ' segue igual' + (cams() ? ', com <b>' + fmtBRL(camAssin('anual')) + '</b> de acréscimo das câmeras.' : ' — <b>sem nova cobrança</b> neste upgrade.') + '</div></div>' +
+          '<div class="card plan" data-plano="anual"><div class="badge">' + seloAnual() + '</div><div class="mark"></div><div class="t">Assinatura anual</div><div class="v">' + fmtBRL(assinValor('anual')) + '<small>/ano</small></div><div class="d">Equivale a ' + fmtBRL(assinValor('anual') / 12) + '/mês — pago no fechamento junto da implementação.</div>' + camAssinNota('anual') + '</div>' +
         '</div></section>'
       : ((f
           ? '<div class="invest-hint">Frota de <b>' + f.boats + ' embarcações</b>. A <b>implementação</b> soma o setup de cada barco (conforme a rede) e a <b>assinatura</b> é de <b>' + fmtBRL(f.subMensal) + '/barco/mês</b> — total <b>' + fmtBRL(planoValor('mensal')) + '/mês</b> ou <b>' + fmtBRL(planoValor('anual')) + '/ano</b>.</div>'
@@ -1139,7 +1132,7 @@ function updatePayOpts() {
 function ctaLabel() {
   if (!planoSel) {
     if (isRenov()) return 'Escolha mensal ou anual acima';
-    return isUpgrade() ? 'Confirme seu plano atual acima' : 'Aceitar termos e contratar';
+    return isUpgrade() ? 'Escolha mensal ou anual acima' : 'Aceitar termos e contratar';
   }
   const rec = recorrenciaInfo(planoSel);
   if (rec) {                                    // mensal: PIX da implementação + cartão recorrente
@@ -1149,7 +1142,6 @@ function ctaLabel() {
       : verbo + ' — ativar ' + fmtBRL(rec.valorMes) + '/mês no cartão';
   }
   if (isRenov()) return 'Renovar assinatura — pagar ' + fmtBRL(totalCom(planoSel)) + (planoSel === 'anual' ? ' (anuidade)' : ' (mensalidade)');
-  if (isUpgrade()) return 'Aceitar e pagar upgrade — ' + fmtBRL(totalCom(planoSel)) + ' (implementação do upgrade)';
   return 'Aceitar termos e contratar — pagar ' + fmtBRL(totalCom(planoSel)) + ' (' + (implIsento() ? '' : 'implementação + ') + (planoSel === 'anual' ? 'anuidade' : '1ª mensalidade') + ')';
 }
 
@@ -1190,7 +1182,7 @@ function renderAceite() {
     '<div class="check"><input type="checkbox" id="aTermos"><span>Li e aceito os <a href="' + termosUrl + '" target="_blank">Termos de Uso e o Contrato de Prestação de Serviços</a> da SAFEBOAT (' + (p.segmento === 'B2B' ? 'empresas' : 'pessoa física') + ').</span></div>' +
     '<div class="pay-opts" id="payOpts" style="flex-wrap:wrap">' + payOptsHTML() + '</div>' +
     '<button class="cta" id="btnAceitar">' + ctaLabel() + '</button>' +
-    '<div style="margin-top:10px;font-size:12px;color:#8A8F9C;text-align:center">' + (isRenov() ? 'O pagamento renova sua assinatura SAFEBOAT pelo período escolhido (mensal ou anual). Não há alteração no equipamento nem nova instalação — o monitoramento continua ativo.' : (isUpgrade() ? 'O pagamento no fechamento é apenas a <b>implementação do upgrade</b> — sua assinatura atual é mantida, sem nova cobrança. A leitura da rede NMEA passa a valer <b>após a instalação</b> · instalação em até <b>30 dias</b> a partir do pagamento.' : ((implIsento() ? 'O pagamento no fechamento é apenas da assinatura escolhida (mensalidade ou anuidade integral) — a implementação é cortesia.' : 'O pagamento no fechamento inclui a implementação <b>+</b> a assinatura escolhida (mensalidade ou anuidade integral).') + ' O período de uso passa a valer <b>somente após a implementação</b> · instalação em até <b>30 dias</b> a partir do pagamento.'))) + '</div>' +
+    '<div style="margin-top:10px;font-size:12px;color:#8A8F9C;text-align:center">' + (isRenov() ? 'O pagamento renova sua assinatura SAFEBOAT pelo período escolhido (mensal ou anual). Não há alteração no equipamento nem nova instalação — o monitoramento continua ativo.' : (isUpgrade() ? 'O pagamento no fechamento inclui a implementação do upgrade <b>+</b> a assinatura escolhida — mesmo valor de hoje, agora contratada pelo sistema. A leitura passa a valer <b>após a instalação</b> · instalação em até <b>30 dias</b> a partir do pagamento.' : ((implIsento() ? 'O pagamento no fechamento é apenas da assinatura escolhida (mensalidade ou anuidade integral) — a implementação é cortesia.' : 'O pagamento no fechamento inclui a implementação <b>+</b> a assinatura escolhida (mensalidade ou anuidade integral).') + ' O período de uso passa a valer <b>somente após a implementação</b> · instalação em até <b>30 dias</b> a partir do pagamento.'))) + '</div>' +
   '</div>';
   wirePayOpts();
   const bg = document.getElementById('socGoogle'); if (bg) bg.addEventListener('click', () => loginSocial('google'));
@@ -1203,7 +1195,7 @@ function pagamentoHTML() {
   const total = totalCom(p.plano);
   const upg = isUpgrade();
   const renov = isRenov();
-  const cab = renov ? 'renovação da assinatura' : (upg ? 'implementação do upgrade' : (implIsento() ? 'assinatura (implementação isenta)' : 'implementação + assinatura'));
+  const cab = renov ? 'renovação da assinatura' : (upg ? 'implementação do upgrade + assinatura' : (implIsento() ? 'assinatura (implementação isenta)' : 'implementação + assinatura'));
   const linhaCamImpl = (cams() ? '<div>Câmera' + (cams() > 1 ? 's' : '') + ' (' + cams() + ') · implantação <b style="float:right;margin-left:26px">' + fmtBRL(camImpl()) + '</b></div>' : '') +
     (vibs() ? '<div>VIB (' + vibs() + ' motor' + (vibs() > 1 ? 'es' : '') + ') · implantação <b style="float:right;margin-left:26px">' + fmtBRL(vibImpl()) + '</b></div>' : '');
   const linhaCamAssin = ((cams() && plano) ? '<div>Câmera' + (cams() > 1 ? 's' : '') + ' · acréscimo na assinatura <b style="float:right;margin-left:26px">' + fmtBRL(camAssin(p.plano)) + '</b></div>' : '') +
@@ -1216,11 +1208,11 @@ function pagamentoHTML() {
         linhaCamAssin +
         '<div style="border-top:1px solid #E3E5EB;margin-top:6px;padding-top:6px;font-weight:800;color:#2D324B">Total <span style="float:right;margin-left:26px;font-size:22px">' + fmtBRL(total) + '</span></div>' +
       '</div>'
-    : upg
+    : false
     ? '<div style="display:inline-block;text-align:left;margin:6px auto 2px;font-size:13px;color:#3A3F4E">' +
         (Number(p.valor) ? '<div>Upgrade · ' + (listaImpl(false) || 'implantação') + ' <b style="float:right;margin-left:26px">' + fmtBRL(p.valor) + '</b></div>' : '') +
         linhaCamImpl +
-        (plano ? '<div style="color:#6B7080">Assinatura ' + plano.label.toLowerCase() + ' atual <b style="float:right;margin-left:26px;color:#0B6B4D">mantida</b></div>' : '') +
+        (plano ? '' : '') +
         linhaCamAssin +
         '<div style="border-top:1px solid #E3E5EB;margin-top:6px;padding-top:6px;font-weight:800;color:#2D324B">Total <span style="float:right;margin-left:26px;font-size:22px">' + fmtBRL(total) + '</span></div>' +
       '</div>'
@@ -1235,7 +1227,7 @@ function pagamentoHTML() {
     ? '<div style="margin-top:14px;font-size:12.5px;color:#4E5666;background:#F4F5F8;border-radius:10px;padding:10px 14px;text-align:left">🔄 Renovação sem alteração no sistema — o monitoramento continua ativo pelo período contratado.</div>'
     : '<div style="margin-top:14px;font-size:12.5px;color:#4E5666;background:#F4F5F8;border-radius:10px;padding:10px 14px;text-align:left">' +
         '⏱ <b>Instalação em até 30 dias</b> a partir da data do pagamento.<br>' +
-        (upg ? '📅 A leitura da rede NMEA passa a valer <b>após a instalação</b>. Sua assinatura atual é mantida, sem nova cobrança.' : '📅 O período de uso da assinatura passa a valer <b>somente após a implementação</b> do sistema.') +
+        (upg ? '📅 A leitura passa a valer <b>após a instalação</b>. Assinatura no mesmo valor de hoje, agora contratada pelo sistema.' : '📅 O período de uso da assinatura passa a valer <b>somente após a implementação</b> do sistema.') +
       '</div>';
   let inner;
   const rec = recorrenciaInfo(p.plano);
@@ -1357,7 +1349,7 @@ function preencherContratoDOM(doc, ac) {
   else set('valorImpl', fmtBRL(p.valor) + (isUpgrade() ? ' (upgrade — adição de leitura de dados)' : ''));
 
   if (plano) {
-    set('planoLabel', plano.label + (isUpgrade() ? ' (mantida — sem nova cobrança neste upgrade)' : ''));
+    set('planoLabel', plano.label);
     set('valorAssin', fmtBRL(planoValor(ac.plano)) + plano.sufixo);
   }
   set('valorTotal', fmtBRL(totalCom(ac.plano)));
@@ -1412,7 +1404,7 @@ function preencherContratoDOM(doc, ac) {
   // Anexo II — composição
   set('avImpl', Number(p.valor) ? fmtBRL(p.valor) : (isRenov() ? 'não se aplica' : 'isenta'));
   set('avPlano', plano ? plano.label : '—');
-  set('avAssin', isUpgrade() ? 'mantida — sem nova cobrança' : fmtBRL(planoValor(ac.plano)));
+  set('avAssin', fmtBRL(planoValor(ac.plano)));
 }
 
 async function aceitarProposta() {

@@ -275,7 +275,7 @@ function preencherContrato(p) {
   const plano = PLANOS[p.plano];
   const assinBase = plano ? plano.valor : 0;
   const camAssin = nc * (anual ? CAM.anual : CAM.mensal);
-  const total = upg ? implSist + camImpl + camAssin + vibImplV + vibAssinV : implSist + camImpl + vibImplV + assinBase + camAssin + vibAssinV;
+  const total = implSist + camImpl + vibImplV + assinBase + camAssin + vibAssinV;
 
   if (renov && !implSist) set('valorImpl', 'não se aplica (renovação sem alteração no sistema)');
   else if (renov) set('valorImpl', fmtBRL(implSist) + ' (implantação contratada nesta renovação — itens discriminados no Anexo I)');
@@ -283,7 +283,7 @@ function preencherContrato(p) {
   else set('valorImpl', fmtBRL(implSist) + (upg ? ' (upgrade — adição de leitura de dados)' : ''));
 
   if (plano) {
-    set('planoLabel', plano.label + (upg ? ' (mantida — sem nova cobrança neste upgrade)' : ''));
+    set('planoLabel', plano.label);
     set('valorAssin', fmtBRL(assinBase) + plano.sufixo);
   } else {
     set('planoLabel', 'a selecionar no aceite (mensal ou anual)');
@@ -337,7 +337,7 @@ function preencherContrato(p) {
   // --- Anexo II: composição ---
   set('avImpl', renov ? 'não se aplica' : (implSist ? fmtBRL(implSist) : 'isenta'));
   set('avPlano', plano ? plano.label : 'a selecionar');
-  set('avAssin', upg ? 'mantida — sem nova cobrança' : fmtBRL(assinBase));
+  set('avAssin', fmtBRL(assinBase));
 
   set('dataExtenso', dataExtenso(p.aceite_at));
 }
