@@ -195,6 +195,7 @@
   <tr><td style="padding:6px 0">Assinatura (<span class="mf" data-mf="avPlano">—</span>)</td><td style="text-align:right"><span class="mf" data-mf="avAssin">—</span></td></tr>
   <tr id="avLinhaCamAssin" style="display:none"><td style="padding:6px 0">Acréscimo das câmeras na assinatura</td><td style="text-align:right"><span class="mf" data-mf="avCamAssin">—</span></td></tr>
   <tr id="avLinhaVibAssin" style="display:none"><td style="padding:6px 0">Acréscimo do VIB na assinatura</td><td style="text-align:right"><span class="mf" data-mf="avVibAssin">—</span></td></tr>
+  <tr id="avLinhaDesc" style="display:none"><td style="padding:6px 0"><b>Desconto especial — fechamento na anuidade</b></td><td style="text-align:right;color:#0B6B4D"><b><span class="mf" data-mf="avDesc">—</span></b></td></tr>
   <tr><td style="padding:8px 0;border-top:1px solid #ccc;font-weight:700">Total no fechamento</td><td style="text-align:right;border-top:1px solid #ccc;font-weight:700"><span class="mf" data-mf="valorTotal">—</span></td></tr>
 </table>
 </main>
@@ -277,7 +278,16 @@ function preencherContrato(p) {
   const fb = fleetKit(p.kit);   // negociação por frota com valores próprios
   const assinBase = plano ? (fb ? Math.round(fb.boats * (anual ? fb.subAnual : fb.subMensal) * 100) / 100 : plano.valor) : 0;
   const camAssin = nc * (anual ? CAM.anual : CAM.mensal);
-  const total = implSist + camImpl + vibImplV + assinBase + camAssin + vibAssinV;
+  let total = implSist + camImpl + vibImplV + assinBase + camAssin + vibAssinV;
+  const tDesc = String(p.kit || '').split(' + ').find((k) => k.indexOf('#DESC=') === 0);
+  const descP = tDesc ? parseFloat(tDesc.slice(6)) : 0;
+  if (anual && descP > 0 && descP < 90) {
+    const comDesc = Math.round(total * (100 - descP)) / 100;
+    const trd = document.getElementById('avLinhaDesc');
+    if (trd) trd.style.display = '';
+    set('avDesc', '− ' + fmtBRL(Math.round((total - comDesc) * 100) / 100));
+    total = comDesc;
+  }
 
   if (renov && !implSist) set('valorImpl', 'não se aplica (renovação sem alteração no sistema)');
   else if (renov) set('valorImpl', fmtBRL(implSist) + ' (implantação contratada nesta renovação — itens discriminados no Anexo I)');

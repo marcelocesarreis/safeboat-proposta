@@ -168,6 +168,7 @@ const PAGAMENTO = {
    câmeras (upgrades, que mantêm a assinatura atual). */
 const MP_PLANOS = {
   full: {
+    '776.90': 'https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=80f1ab40d0c44a8fb1a467495bbfc846',
     '660.35': 'https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=9edfc8c110c14698891df4c44eb91495',
     '298.90': 'https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=da203b928b2f4e1b9176ca0efda756b2',
     '328.80': 'https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=4f487b97635b44f1b2a1e8733140d185',
@@ -922,7 +923,22 @@ const seloAnual = () => '2 meses grátis — economize ' + fmtBRL(economiaAnual(
    (mensal recorrente no cartão ou anuidade) — paga-se a implementação (do upgrade e
    das câmeras) e o acréscimo das câmeras na assinatura. Renovação e instalação
    nova: implementação + assinatura, ambas já com as câmeras embutidas. */
-const totalCom = (plano) => implValor() + assinValor(plano);
+/* Desconto especial (#DESC=<pct>): aplica-se SOMENTE ao fechamento na
+   anuidade — a mensalidade permanece no preço cheio. */
+function descPct() {
+  const t = String(p.kit || '').split(' + ').find((k) => k.indexOf('#DESC=') === 0);
+  const n = t ? parseFloat(t.slice(6)) : 0;
+  return (n > 0 && n < 90) ? n : 0;
+}
+const totalCom = (plano) => {
+  const bruto = implValor() + assinValor(plano);
+  if (plano === 'anual' && descPct()) return Math.round(bruto * (100 - descPct())) / 100;
+  return bruto;
+};
+const descontoAnual = () => {
+  if (!descPct()) return 0;
+  return Math.round((implValor() + assinValor('anual') - totalCom('anual')) * 100) / 100;
+};
 
 /* Recorrência no cartão: obrigatória sempre que houver valor MENSAL a receber
    (B2C — frotas B2B são faturadas). Devolve o valor mensal e o link do plano. */
@@ -1016,7 +1032,7 @@ function render() {
   const upg = isUpgrade();
   const renov = isRenov();
   const f = fleet();
-  const kitItens = String(p.kit).split(' + ').filter((k) => k && k !== '#UPGRADE' && k !== '#RENOVACAO' && k.indexOf('#B2B=') !== 0 && k.indexOf('#CAM=') !== 0 && k.indexOf('#VIB=') !== 0);
+  const kitItens = String(p.kit).split(' + ').filter((k) => k && k !== '#UPGRADE' && k !== '#RENOVACAO' && k.indexOf('#B2B=') !== 0 && k.indexOf('#CAM=') !== 0 && k.indexOf('#VIB=') !== 0 && k.indexOf('#DESC=') !== 0);
   const termosUrl = (p.segmento === 'B2B' ? 'termos-b2b.html' : 'termos-b2c.html') + '?p=' + ref.n + '-' + ref.t;
   const numeroFmt = 'Nº ' + String(p.numero).padStart(4, '0');
   const validade = (() => { const d = new Date(p.created_at || Date.now()); d.setDate(d.getDate() + 30); return fmtData(d.toISOString()); })();
@@ -1094,6 +1110,7 @@ function render() {
           '<div class="oumark">OU</div>' +
           '<div class="card plan" data-plano="anual"><div class="badge">' + seloAnual() + '</div><div class="mark"></div><div class="t">Assinatura anual</div><div class="v">' + fmtBRL(assinValor('anual')) + '<small>/ano</small></div><div class="d">Equivale a ' + fmtBRL(assinValor('anual') / 12) + '/mês. O período anual só começa após a implementação.</div>' + camAssinNota('anual') + '</div>' +
         '</div></section>'))) +
+    descontoBoxHTML() +
     '<section id="secAceite"></section>' +
     '</main>' +
     '<footer>SAFEBOAT TECNOLOGIA LTDA · CNPJ 52.998.441/0001-28 · A inteligência que protege seu patrimônio</footer>' +
@@ -1136,6 +1153,30 @@ function wirePayOpts() {
 function updatePayOpts() {
   const d = document.getElementById('payOpts');
   if (d) { d.innerHTML = payOptsHTML(); wirePayOpts(); }
+}
+
+/* Quadro do desconto: 2 meses grátis da anuidade + desconto especial,
+   empilhados e com o total final em destaque. Só aparece com #DESC. */
+function descontoBoxHTML() {
+  const pct = descPct();
+  if (!pct || isUpgrade() || isRenov()) return '';
+  const f = fleet();
+  const mens12 = Math.round(12 * assinValor('mensal') * 100) / 100;
+  const doisMeses = Math.round((mens12 - assinValor('anual')) * 100) / 100;
+  const pct2m = Math.round((doisMeses / mens12) * 1000) / 10;
+  const bruto = Math.round((implValor() + assinValor('anual')) * 100) / 100;
+  const desc = descontoAnual();
+  const total = totalCom('anual');
+  const quem = f ? ' das ' + f.boats + ' embarcações' : '';
+  const linha = (t, v) => '<div style="display:flex;justify-content:space-between;gap:14px;padding:7px 0;border-bottom:1px solid #DCEEE2;font-size:13.5px"><span>' + t + '</span><b style="color:#0B6B4D;white-space:nowrap">' + v + '</b></div>';
+  return '<section><div style="background:#F0FAF4;border:1.5px solid #9AD4AE;border-radius:16px;padding:20px 22px">' +
+    '<div style="font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#0B6B4D;font-weight:800;margin-bottom:10px">🎁 Condição especial — fechando na anuidade</div>' +
+    linha('2 meses grátis da anuidade (' + String(pct2m).replace('.', ',') + '% sobre 12 mensalidades)', '− ' + fmtBRL(doisMeses)) +
+    linha('<b>Desconto especial de ' + pct + '%</b> — fechamento da anuidade' + quem + ' (sobre implementação + anuidade)', '− ' + fmtBRL(desc)) +
+    '<div style="display:flex;justify-content:space-between;gap:14px;padding-top:12px;align-items:baseline"><span style="font-weight:800;color:#2D324B">Total no fechamento anual</span>' +
+      '<span style="white-space:nowrap"><s style="color:#8A8F9C;font-size:14px">' + fmtBRL(bruto) + '</s> <b style="color:#0B6B4D;font-size:24px">' + fmtBRL(total) + '</b></span></div>' +
+    '<div style="margin-top:8px;font-size:12px;color:#4E5666">Válido apenas para o plano anual — no mensal valem os valores integrais.</div>' +
+  '</div></section>';
 }
 
 function ctaLabel() {
@@ -1230,6 +1271,7 @@ function pagamentoHTML() {
         ((cams() || vibs()) ? '<div style="font-size:11.5px;color:#8A8F9C;margin:-2px 0 5px">kit do sistema ' + fmtBRL(p.valor) + (cams() ? ' + ' + cams() + ' câmera' + (cams() > 1 ? 's' : '') + ' ' + fmtBRL(camImpl()) : '') + (vibs() ? ' + VIB ' + fmtBRL(vibImpl()) : '') + '</div>' : '') +
         (plano ? '<div>Assinatura ' + plano.label.toLowerCase() + (p.plano === 'anual' ? ' (anuidade integral)' : ' (1ª mensalidade)') + ' <b style="float:right;margin-left:26px">' + fmtBRL(assinValor(p.plano)) + '</b></div>' : '') +
         (((cams() || vibs()) && plano) ? '<div style="font-size:11.5px;color:#8A8F9C;margin:-2px 0 5px">assinatura ' + fmtBRL(planoValor(p.plano)) + (cams() ? ' + câmeras ' + fmtBRL(camAssin(p.plano)) : '') + (vibs() ? ' + VIB ' + fmtBRL(vibAssin(p.plano)) : '') + '</div>' : '') +
+        (p.plano === 'anual' && descPct() ? '<div>Desconto especial (' + descPct() + '% · fechamento na anuidade) <b style="float:right;margin-left:26px;color:#0B6B4D">− ' + fmtBRL(descontoAnual()) + '</b></div>' : '') +
         '<div style="border-top:1px solid #E3E5EB;margin-top:6px;padding-top:6px;font-weight:800;color:#2D324B">Total <span style="float:right;margin-left:26px;font-size:22px">' + fmtBRL(total) + '</span></div>' +
       '</div>';
   const avisos = renov
@@ -1411,6 +1453,10 @@ function preencherContratoDOM(doc, ac) {
   }
 
   // Anexo II — composição
+  if (ac.plano === 'anual' && descPct()) {
+    mostrar('avLinhaDesc');
+    set('avDesc', '− ' + fmtBRL(descontoAnual()));
+  }
   set('avImpl', Number(p.valor) ? fmtBRL(p.valor) : (isRenov() ? 'não se aplica' : 'isenta'));
   set('avPlano', plano ? plano.label : '—');
   set('avAssin', fmtBRL(planoValor(ac.plano)));
