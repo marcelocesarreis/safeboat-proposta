@@ -168,6 +168,7 @@ const PAGAMENTO = {
    câmeras (upgrades, que mantêm a assinatura atual). */
 const MP_PLANOS = {
   full: {
+    '660.35': 'https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=9edfc8c110c14698891df4c44eb91495',
     '298.90': 'https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=da203b928b2f4e1b9176ca0efda756b2',
     '328.80': 'https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=4f487b97635b44f1b2a1e8733140d185',
     '348.80': 'https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=e866aced694a406a8126dd70660243c0',
@@ -216,6 +217,7 @@ const mpPlanoUrl = (tipo, valor) => (MP_PLANOS[tipo] || {})[Number(valor).toFixe
    Links de checkout reutilizáveis criados na conta SAFEBOAT para os valores
    padrão. Valor fora da tabela (edição manual): só PIX. */
 const MP_IMPL = {
+  '2526.99': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-99e92d86-0c46-4a2b-8883-98ca13e11f13',
     '1800.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-9a4eeaf4-b33e-4e97-b552-1972102729e5',
     '2272.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-9fa31e28-16dd-491c-8f39-9735dd610f1b',
     '2400.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-f6680d4f-bddd-46ac-bdea-17db7c9a776b',
@@ -376,6 +378,7 @@ const mpImplUrl = (v) => MP_IMPL[Number(v).toFixed(2)] || null;
    por conta do comprador — padrão MP). Total = implementação + anuidade.
    Valor fora da tabela: só PIX. */
 const MP_ANUAL = {
+  '9130.64': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-a7e1f525-7f58-4a07-b047-a1148c5b73ea',
     '4988.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-b4da6bcc-3474-45d1-88a7-71ef23a25afa',
     '5288.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-0e633a9f-9e9a-43d8-8dba-80313253957a',
     '5759.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-f976a9ad-1211-44cd-95b3-802603420843',
@@ -705,7 +708,7 @@ const MP_ANUAL = {
 /* Pagamento único no cartão para fluxos SEM recorrência (anual, upgrades).
    Upgrade: o total do fechamento é a própria implementação (tabela MP_IMPL). */
 function cartaoAvulsoUrl() {
-  if (recorrenciaInfo(p.plano) || fleet()) return null;
+  if (recorrenciaInfo(p.plano)) return null;   // frota: só acha link se o valor exato foi criado
   const total = totalCom(p.plano);
   return MP_ANUAL[Number(total).toFixed(2)] || null;
 }
@@ -924,8 +927,14 @@ const totalCom = (plano) => implValor() + assinValor(plano);
 /* Recorrência no cartão: obrigatória sempre que houver valor MENSAL a receber
    (B2C — frotas B2B são faturadas). Devolve o valor mensal e o link do plano. */
 function recorrenciaInfo(plano) {
-  if (plano !== 'mensal' || fleet()) return null;
+  if (plano !== 'mensal') return null;
   const v = assinValor('mensal');   // upgrade e renovação: assinatura cheia pelo sistema
+  if (fleet()) {
+    // frota: só entra na recorrência se existir plano criado para ESTE valor
+    // (negociações sob medida); frotas padrão seguem no faturamento
+    const url = mpPlanoUrl('full', v);
+    return url ? { valorMes: v, url } : null;
+  }
   return { valorMes: v, url: mpPlanoUrl('full', v) };
 }
 const recorrenciaObrigatoria = (plano) => !!recorrenciaInfo(plano);
