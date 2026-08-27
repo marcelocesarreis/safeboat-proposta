@@ -1081,7 +1081,7 @@ function render() {
       '</div>' +
     '</div><img class="art" src="img/recursos.jpg" alt="SAFEBOAT no barco"></div></div>' +
     '<main>' +
-    (vibSolo() ? '' :   // exclusivo VIB: a seção do VIB é a principal
+    (vibSolo() ? '<div style="height:72px"></div>' :   // exclusivo VIB: espaçador compensa o main subir sobre o hero (margin-top:-56px)
     '<section><h2>Por que SAFEBOAT</h2><div class="feats">' +
       '<div class="feat"><img src="img/telemetria.jpg" alt="Telemetria de motores e parâmetros-chave"></div>' +
       '<div class="feat"><img src="img/cerca.jpg" alt="Rastreamento e cerca virtual com alarme de âncora"></div>' +
