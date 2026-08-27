@@ -301,7 +301,7 @@ function preencherContrato(p) {
     set('valorAssin', soloVib ? 'composta exclusivamente pelo acréscimo do VIB (Cláusula 3.7.3)' : fmtBRL(assinBase) + plano.sufixo);
   } else {
     set('planoLabel', 'a selecionar no aceite (mensal ou anual)');
-    set('valorAssin', 'R$ 249,00/mês ou R$ 2.490,00/ano');
+    set('valorAssin', soloVib ? 'R$ 49,90/máquina/mês ou R$ 499,00/máquina/ano (Cláusula 3.7.3)' : (fb ? fmtBRL(Math.round(fb.boats * fb.subMensal * 100) / 100) + '/mês ou ' + fmtBRL(Math.round(fb.boats * fb.subAnual * 100) / 100) + '/ano' : 'R$ 249,00/mês ou R$ 2.490,00/ano'));
   }
 
   // --- câmeras (comodato, só em instalação nova) ---
