@@ -73,12 +73,12 @@
 </div>
 
 <div class="prot" id="clVib" style="display:none">
-<h2>3.7. Monitoramento de vibração VIB (opcional)</h2>
-<p>3.7.1. A CONTRATANTE optou pelo monitoramento preditivo de vibração <b>SAFEBOAT VIB</b> em <span class="mf" data-mf="vibQtd">—</span> motor(es), por meio de sensores autônomos cedidos em <b>comodato</b> (Anexo I), fixados de forma não invasiva (adesivo naval, sem furos) e alimentados por bateria substituível.</p>
-<p>3.7.2. <b>Implantação do VIB.</b> Pela implantação, a CONTRATANTE pagará o valor de <span class="mf" data-mf="vibImplVal">R$ ____</span>, correspondente a R$ 600,00 (seiscentos reais) por motor monitorado, em parcela única no ato do aceite, somado à taxa da Cláusula 3.1.</p>
-<p>3.7.3. <b>Acréscimo na assinatura.</b> A assinatura sofre acréscimo de <span class="mf" data-mf="vibUnitAssin">R$ ____</span> por motor monitorado, totalizando <span class="mf" data-mf="vibAssinVal">R$ ____</span>, somado ao valor da Cláusula 3.2 e sujeito ao reajuste da Cláusula 3.4.</p>
+<h2>3.7. Monitoramento de vibração VIB</h2>
+<p>3.7.1. A CONTRATANTE optou pelo monitoramento preditivo de vibração <b>SAFEBOAT VIB</b> em <span class="mf" data-mf="vibQtd">—</span> máquina(s) — motor(es) e/ou gerador(es) marítimo(s) —, por meio de sensores autônomos cedidos em <b>comodato</b> (Anexo I), fixados de forma não invasiva (adesivo naval, sem furos) e alimentados por bateria substituível. O VIB transmite pela rede <b>Wi-Fi da embarcação</b>, cuja disponibilidade e consumo de dados são de responsabilidade da CONTRATANTE.</p>
+<p>3.7.2. <b>Implantação do VIB.</b> Pela implantação, a CONTRATANTE pagará o valor de <span class="mf" data-mf="vibImplVal">R$ ____</span>, correspondente a R$ 600,00 (seiscentos reais) por máquina monitorada, em parcela única no ato do aceite, somado à taxa da Cláusula 3.1.</p>
+<p>3.7.3. <b>Acréscimo na assinatura.</b> A assinatura sofre acréscimo de <span class="mf" data-mf="vibUnitAssin">R$ ____</span> por máquina monitorada, totalizando <span class="mf" data-mf="vibAssinVal">R$ ____</span>, somado ao valor da Cláusula 3.2 e sujeito ao reajuste da Cláusula 3.4.</p>
 <p>3.7.4. <b>Natureza preditiva e auxiliar.</b> O VIB analisa tendências de vibração (espectro e severidade referenciada na norma ISO 10816) para <b>indicar probabilidade</b> de desgaste ou anomalia mecânica. Trata-se de ferramenta <b>informativa e auxiliar</b>: não constitui diagnóstico definitivo, não garante a antecipação ou detecção de toda e qualquer falha e <b>não substitui</b> as manutenções preventivas, revisões e inspeções recomendadas pelo fabricante do motor, que permanecem de responsabilidade da CONTRATANTE. Aplicam-se integralmente as Cláusulas 5 a 8.</p>
-<p>3.7.5. <b>Aprendizado inicial.</b> Nos primeiros dias de uso o sistema constrói a assinatura de vibração de referência de cada motor; alertas preditivos passam a valer após esse período de aprendizado.</p>
+<p>3.7.5. <b>Aprendizado inicial.</b> Nos primeiros dias de uso o sistema constrói a assinatura de vibração de referência de cada máquina; alertas preditivos passam a valer após esse período de aprendizado.</p>
 <p>3.7.6. <b>Comodato.</b> Os sensores VIB permanecem de propriedade exclusiva da CONTRATADA e sujeitam-se integralmente à Cláusula 9, inclusive quanto à guarda, conservação, restituição e responsabilidade por extravio, furto, sinistro ou dano. A substituição de baterias em uso normal é orientada pela CONTRATADA.</p>
 </div>
 
@@ -210,7 +210,7 @@ const PLANOS = { mensal: { label: 'mensal', valor: 249, sufixo: '/mês' }, anual
 /* Câmera opcional: implantação (preço + 15%) e acréscimo na assinatura */
 const CAM = { impl: Math.round(411.24 * 1.15 * 100) / 100, mensal: 29.90, anual: 299.00 };
 const VIBC = { impl: 600, mensal: 49.90, anual: 499.00 };
-function vibsKit(kit) { const t = String(kit || '').split(' + ').find((k) => k.indexOf('#VIB=') === 0); return t ? Math.min(3, Math.max(0, parseInt(t.slice(5), 10) || 0)) : 0; }
+function vibsKit(kit) { const t = String(kit || '').split(' + ').find((k) => k.indexOf('#VIB=') === 0); return t ? Math.min(8, Math.max(0, parseInt(t.slice(5), 10) || 0)) : 0; }
 function fleetKit(kit) { const t = String(kit || '').split(' + ').find((k) => k.indexOf('#B2B=') === 0); if (!t) return null; try { return JSON.parse(decodeURIComponent(escape(atob(t.slice(5))))); } catch (e) { return null; } }
 const MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
 const fmtBRL = (v) => Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -276,7 +276,8 @@ function preencherContrato(p) {
   const vibAssinV = nv * (anual ? VIBC.anual : VIBC.mensal);
   const plano = PLANOS[p.plano];
   const fb = fleetKit(p.kit);   // negociação por frota com valores próprios
-  const assinBase = plano ? (fb ? Math.round(fb.boats * (anual ? fb.subAnual : fb.subMensal) * 100) / 100 : plano.valor) : 0;
+  const soloVib = String(p.kit || '').split(' + ').indexOf('#VIBSOLO') !== -1;   // exclusivo VIB: sem assinatura base
+  const assinBase = plano ? (fb ? Math.round(fb.boats * (anual ? fb.subAnual : fb.subMensal) * 100) / 100 : (soloVib ? 0 : plano.valor)) : 0;
   const camAssin = nc * (anual ? CAM.anual : CAM.mensal);
   let total = implSist + camImpl + vibImplV + assinBase + camAssin + vibAssinV;
   const tDesc = String(p.kit || '').split(' + ').find((k) => k.indexOf('#DESC=') === 0);
@@ -289,14 +290,15 @@ function preencherContrato(p) {
     total = comDesc;
   }
 
-  if (renov && !implSist) set('valorImpl', 'não se aplica (renovação sem alteração no sistema)');
+  if (soloVib) set('valorImpl', 'não se aplica — a implantação desta contratação é exclusivamente a do VIB (Cláusula 3.7.2 e Anexo II)');
+  else if (renov && !implSist) set('valorImpl', 'não se aplica (renovação sem alteração no sistema)');
   else if (renov) set('valorImpl', fmtBRL(implSist) + ' (implantação contratada nesta renovação — itens discriminados no Anexo I)');
   else if (!implSist) set('valorImpl', 'isenta (cortesia SAFEBOAT)');
   else set('valorImpl', fmtBRL(implSist) + (upg ? ' (upgrade — adição de leitura de dados)' : ''));
 
   if (plano) {
     set('planoLabel', plano.label);
-    set('valorAssin', fmtBRL(assinBase) + plano.sufixo);
+    set('valorAssin', soloVib ? 'composta exclusivamente pelo acréscimo do VIB (Cláusula 3.7.3)' : fmtBRL(assinBase) + plano.sufixo);
   } else {
     set('planoLabel', 'a selecionar no aceite (mensal ou anual)');
     set('valorAssin', 'R$ 249,00/mês ou R$ 2.490,00/ano');

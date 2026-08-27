@@ -167,6 +167,14 @@ const PAGAMENTO = {
    'full' = assinatura completa (R$249 + câmeras) · 'cam' = só o acréscimo de
    câmeras (upgrades, que mantêm a assinatura atual). */
 const MP_PLANOS = {
+  vib: {   // proposta exclusiva VIB — R$ 49,90 × máquinas (motores e geradores)
+    '49.90': 'https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=fc0da7abc9dc4d49965c11603621cc2e',
+    '99.80': 'https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=3d034f04ab7342dcb3d337376ebd2301',
+    '149.70': 'https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=39baabc7c89f4e34829670071df55a05',
+    '199.60': 'https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=ce0cc5360fa9462fb670b9f578f80f3f',
+    '249.50': 'https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=9fbf3cc2557045a9b91c028fc7dad084',
+    '299.40': 'https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=09144338ee2e4faab0cf600fc0f7dfd1',
+  },
   full: {
     '776.90': 'https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=80f1ab40d0c44a8fb1a467495bbfc846',
     '660.35': 'https://www.mercadopago.com.br/subscriptions/checkout?preapproval_plan_id=9edfc8c110c14698891df4c44eb91495',
@@ -218,6 +226,8 @@ const mpPlanoUrl = (tipo, valor) => (MP_PLANOS[tipo] || {})[Number(valor).toFixe
    Links de checkout reutilizáveis criados na conta SAFEBOAT para os valores
    padrão. Valor fora da tabela (edição manual): só PIX. */
 const MP_IMPL = {
+  '3000.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-e892a82f-1da8-47cd-82d3-cf0ad2dfad03',
+  '3600.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-dd96ef1e-02cd-449e-be75-8b762c807601',
   '2526.99': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-99e92d86-0c46-4a2b-8883-98ca13e11f13',
     '1800.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-9a4eeaf4-b33e-4e97-b552-1972102729e5',
     '2272.93': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-9fa31e28-16dd-491c-8f39-9735dd610f1b',
@@ -379,6 +389,12 @@ const mpImplUrl = (v) => MP_IMPL[Number(v).toFixed(2)] || null;
    por conta do comprador — padrão MP). Total = implementação + anuidade.
    Valor fora da tabela: só PIX. */
 const MP_ANUAL = {
+  '1099.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-fa4af983-2486-4f56-9c3b-4e82c1cc8b53',
+  '2198.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-ebc59e8c-a1f0-43c4-9f52-c6b8f5e5bd1c',
+  '3297.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-cc3558c7-0e37-40e8-a185-a27476989823',
+  '4396.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-adccc543-415b-452c-8f83-75bf72ee523a',
+  '5495.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-18375f55-9722-445b-a52e-adf3441942bd',
+  '6594.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-b89806d3-1dce-4b9b-a616-126488fe6524',
   '9130.64': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-a7e1f525-7f58-4a07-b047-a1148c5b73ea',
     '4988.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-b4da6bcc-3474-45d1-88a7-71ef23a25afa',
     '5288.00': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-0e633a9f-9e9a-43d8-8dba-80313253957a',
@@ -744,10 +760,11 @@ const KIT_IMGS = {
    +R$299,00/ano por câmera (mesma lógica do plano anual — paga 10 meses).
    Requer Starlink a bordo; consumo de dados/energia por conta do usuário. */
 const CAMERA = { nome: 'Câmera Wi-Fi Full HD', precoUnit: 411.24, markup: 0.15, mensal: 29.90, anual: 299.00, img: 'img/eq-camera.png' };
-/* VIB — sensor de vibração autônomo com IA (manutenção preditiva de motores).
-   Opcional B2C: 1 a 3 motores. Implementação R$600 POR MOTOR (cobre o custo
-   do hardware de cada unidade); assinatura +R$49,90/motor/mês ou
-   +R$499,00/motor/ano (regra dos 10 meses). */
+/* VIB — sensor de vibração autônomo com IA: manutenção preditiva de motores
+   E geradores marítimos (1 a 8 máquinas). Implementação R$600 POR MÁQUINA
+   (cobre o hardware de cada unidade); assinatura +R$49,90/máquina/mês ou
+   +R$499,00/máquina/ano (regra dos 10 meses). Requer Wi-Fi a bordo.
+   Como opcional (#VIB=n) ou como proposta EXCLUSIVA (#VIBSOLO, sem kit base). */
 const VIB = { nome: 'VIB — sensor de vibração', mensal: 49.90, anual: 499.00, impl: 600, img: 'img/eq-vib.png' };
 const camUnitImpl = () => Math.round(CAMERA.precoUnit * (1 + CAMERA.markup) * 100) / 100;
 
@@ -881,10 +898,13 @@ const camImpl = () => cams() * camUnitImpl();              // acréscimo na impl
 /* VIB: quantidade de motores no marcador #VIB=<n> */
 function vibs() {
   const t = String(p.kit || '').split(' + ').find((k) => k.indexOf('#VIB=') === 0);
-  return t ? Math.min(3, Math.max(0, parseInt(t.slice(5), 10) || 0)) : 0;
+  return t ? Math.min(8, Math.max(0, parseInt(t.slice(5), 10) || 0)) : 0;
 }
 const vibImpl = () => vibs() * VIB.impl;                   // implementação por motor (cobre o hardware de cada unidade)
 const vibAssin = (plano) => vibs() * (plano === 'anual' ? VIB.anual : VIB.mensal);
+/* Proposta EXCLUSIVA do VIB: só os sensores — sem kit base nem assinatura de R$249 */
+const vibSolo = () => String(p.kit || '').split(' + ').indexOf('#VIBSOLO') !== -1;
+const maqTxt = (n) => n + ' máquina' + (n > 1 ? 's' : '');
 /* O que a implementação cobre — em upgrade e renovação ela pode ser leitura de
    motorização, sensor de corrente, câmeras, ou uma combinação. */
 function itensImpl(comCameras) {
@@ -893,7 +913,7 @@ function itensImpl(comCameras) {
   if (p.rede === 'nmea' || p.rede === 'can') l.push('leitura de motorização');
   if (kit.includes('Sensor de consumo de bateria')) l.push('sensor de consumo de bateria');
   if (comCameras !== false && cams()) l.push(cams() + ' câmera' + (cams() > 1 ? 's' : ''));
-  if (vibs()) l.push('VIB em ' + vibs() + ' motor' + (vibs() > 1 ? 'es' : ''));
+  if (vibs()) l.push('VIB em ' + maqTxt(vibs()));
   return l;
 }
 const listaImpl = (comCameras) => {
@@ -907,6 +927,7 @@ const implIsento = () => implValor() === 0;
 const REDE_NOME = { nenhuma: 'Sem rede NMEA/CAN', nmea: 'Rede NMEA', can: 'Rede CAN (com conversor)' };
 /* Valor da assinatura do plano — por frota (B2B) ou fixo (B2C) */
 function planoValor(plano) {
+  if (vibSolo()) return 0;   // exclusivo VIB: a assinatura é só a dos sensores
   const f = fleet();
   if (f) return f.boats * (plano === 'anual' ? f.subAnual : f.subMensal);
   return PLANOS[plano] ? PLANOS[plano].valor : 0;
@@ -945,6 +966,7 @@ const descontoAnual = () => {
 function recorrenciaInfo(plano) {
   if (plano !== 'mensal') return null;
   const v = assinValor('mensal');   // upgrade e renovação: assinatura cheia pelo sistema
+  if (vibSolo()) return { valorMes: v, url: mpPlanoUrl('vib', v) };   // exclusivo VIB
   if (fleet()) {
     // frota: só entra na recorrência se existir plano criado para ESTE valor
     // (negociações sob medida); frotas padrão seguem no faturamento
@@ -991,24 +1013,27 @@ function camSecaoHTML() {
     '</div></section>';
 }
 
-/* Seção do VIB — manutenção preditiva por vibração, com IA. Só quando #VIB=n. */
+/* Seção do VIB — manutenção preditiva por vibração, com IA. Só quando #VIB=n.
+   Em proposta exclusiva (#VIBSOLO) é a seção principal — sem "opcional". */
 function vibSecaoHTML() {
   const n = vibs();
   if (!n) return '';
-  return '<section><h2>VIB — o motor avisa antes de quebrar <span style="font-size:13px;font-weight:700;color:#2264BE">· opcional · ' + n + ' motor' + (n > 1 ? 'es' : '') + '</span></h2>' +
+  const solo = vibSolo();
+  return '<section><h2>' + (solo ? 'VIB — monitoramento preditivo de motores e geradores' : 'VIB — a máquina avisa antes de quebrar') + ' <span style="font-size:13px;font-weight:700;color:#2264BE">· ' + (solo ? '' : 'opcional · ') + maqTxt(n) + '</span></h2>' +
     '<div class="cam-wrap">' +
-      '<div class="eqcard cam-img"><img src="' + VIB.img + '" alt="' + esc(VIB.nome) + '"><b>' + esc(VIB.nome) + ' · ' + n + ' motor' + (n > 1 ? 'es' : '') + '</b></div>' +
+      '<div class="eqcard cam-img"><img src="' + VIB.img + '" alt="' + esc(VIB.nome) + '"><b>' + esc(VIB.nome) + ' · ' + maqTxt(n) + '</b></div>' +
       '<div class="cam-tx">' +
-        '<p><b>O motor avisa meses antes de quebrar.</b> Um sensor em cada motor e a <b>IA da SAFEBOAT</b> aprendem a vibração do seu motor e antecipam combustão irregular, desalinhamento, hélice desbalanceada, coxins e rolamentos — antes de virar quebra ou reboque.</p>' +
+        '<p><b>A máquina avisa meses antes de quebrar.</b> Um sensor em cada motor ou <b>gerador marítimo</b> e a <b>IA da SAFEBOAT</b> aprendem a vibração de cada máquina e antecipam combustão irregular, desalinhamento, hélice desbalanceada, coxins e rolamentos — antes de virar quebra ou reboque.</p>' +
         '<button type="button" class="saiba" data-alvo="vibMais">Saiba mais ▾</button>' +
-        '<div id="vibMais" class="mais" hidden>' +
-          '<p>O que ele antecipa: <b>problemas de combustão do motor</b>, <b>desalinhamento de eixos</b>, <b>desbalanceamento de hélices</b>, <b>falhas estruturais</b> (coxins, fixações e buchas) e <b>falhas em rolamentos</b>. Tudo aparece na vibração muito antes de virar quebra, fumaça ou reboque — o VIB acompanha a tendência e avisa no app enquanto o reparo ainda é simples e barato. A IA aprende, sozinha, a assinatura do SEU motor na primeira semana de uso.</p>' +
-          '<div class="cam-req" style="background:#EEF3FB;border-color:#C6D8F2;color:#16335E">🌊 <b>Feito para o mar:</b> a análise espectral (FFT, severidade conforme a norma ISO 10816) separa o balanço das ondas da assinatura mecânica do motor — direto no sensor. Sem fios: fixação adesiva naval e bateria substituível, sem furos e sem mexer na elétrica.</div>' +
+        '<div id="vibMais" class="mais"' + (solo ? '' : ' hidden') + '>' +
+          '<p>O que ele antecipa: <b>problemas de combustão</b>, <b>desalinhamento de eixos</b>, <b>desbalanceamento de hélices</b>, <b>falhas estruturais</b> (coxins, fixações e buchas) e <b>falhas em rolamentos</b> — em motores e também em <b>geradores marítimos</b>. Tudo aparece na vibração muito antes de virar quebra, fumaça ou reboque — o VIB acompanha a tendência e avisa no app enquanto o reparo ainda é simples e barato. A IA aprende, sozinha, a assinatura de CADA máquina na primeira semana de uso.</p>' +
+          '<div class="cam-req" style="background:#EEF3FB;border-color:#C6D8F2;color:#16335E">🌊 <b>Feito para o mar:</b> a análise espectral (FFT, severidade conforme a norma ISO 10816) separa o balanço das ondas da assinatura mecânica da máquina — direto no sensor. Sem fios: fixação adesiva naval e bateria substituível, sem furos e sem mexer na elétrica.</div>' +
         '</div>' +
+        '<div class="cam-req">📶 <b>Requer Wi-Fi a bordo.</b> O VIB transmite pela internet da embarcação — disponibilidade e consumo de dados por conta do usuário.</div>' +
         '<div class="cam-preco">' +
           '<div><span>Implementação</span><b>' + n + ' × ' + fmtBRL(VIB.impl) + ' = ' + fmtBRL(n * VIB.impl) + '</b></div>' +
-          '<div><span>Assinatura mensal</span><b>+ ' + fmtBRL(VIB.mensal) + ' por motor/mês' + (n > 1 ? ' (' + n + '× = ' + fmtBRL(n * VIB.mensal) + '/mês)' : '') + '</b></div>' +
-          '<div><span>Assinatura anual</span><b>+ ' + fmtBRL(VIB.anual) + ' por motor/ano' + (n > 1 ? ' (' + n + '× = ' + fmtBRL(n * VIB.anual) + '/ano)' : '') + ' <span style="font-weight:600;color:#0B6B4D">· paga 10 meses</span></b></div>' +
+          '<div><span>Assinatura mensal</span><b>' + (solo ? '' : '+ ') + fmtBRL(VIB.mensal) + ' por máquina/mês' + (n > 1 ? ' (' + n + '× = ' + fmtBRL(n * VIB.mensal) + '/mês)' : '') + '</b></div>' +
+          '<div><span>Assinatura anual</span><b>' + (solo ? '' : '+ ') + fmtBRL(VIB.anual) + ' por máquina/ano' + (n > 1 ? ' (' + n + '× = ' + fmtBRL(n * VIB.anual) + '/ano)' : '') + ' <span style="font-weight:600;color:#0B6B4D">· paga 10 meses</span></b></div>' +
         '</div>' +
       '</div>' +
     '</div></section>';
@@ -1020,7 +1045,7 @@ const isento = () => !Number(p.valor);
 function camAssinNota(plano) {
   const partes = [];
   if (cams()) partes.push(cams() + ' câmera' + (cams() > 1 ? 's' : ''));
-  if (vibs()) partes.push('VIB ' + vibs() + ' motor' + (vibs() > 1 ? 'es' : ''));
+  if (vibs()) partes.push('VIB ' + maqTxt(vibs()));
   if (!partes.length) return '';
   const extras = camAssin(plano) + vibAssin(plano);
   return '<div style="margin-top:7px;color:#2264BE;font-weight:700">Já inclui ' + partes.join(' + ') +
@@ -1052,10 +1077,11 @@ function render() {
       '<div class="chips">' +
         '<span class="chip">📅 ' + fmtData(p.created_at) + '</span>' +
         '<span class="chip">⏳ Válida até ' + validade + '</span>' +
-        '<span class="chip">🔧 ' + (renov ? '🔄 Renovação de assinatura' : upg ? '⬆ Upgrade — acesso à rede NMEA' : esc((REDES[p.rede] || {}).label || '')) + '</span>' +
+        '<span class="chip">' + (vibSolo() ? '📳 VIB — monitoramento preditivo' : '🔧 ' + (renov ? '🔄 Renovação de assinatura' : upg ? '⬆ Upgrade — acesso à rede NMEA' : esc((REDES[p.rede] || {}).label || ''))) + '</span>' +
       '</div>' +
     '</div><img class="art" src="img/recursos.jpg" alt="SAFEBOAT no barco"></div></div>' +
     '<main>' +
+    (vibSolo() ? '' :   // exclusivo VIB: a seção do VIB é a principal
     '<section><h2>Por que SAFEBOAT</h2><div class="feats">' +
       '<div class="feat"><img src="img/telemetria.jpg" alt="Telemetria de motores e parâmetros-chave"></div>' +
       '<div class="feat"><img src="img/cerca.jpg" alt="Rastreamento e cerca virtual com alarme de âncora"></div>' +
@@ -1076,7 +1102,7 @@ function render() {
               '<div class="obs"><b>Obs.:</b> a disponibilidade de cada parâmetro depende do modelo do motor. Motores que não possuem o sensor correspondente não transmitem esse dado na rede — o SAFEBOAT exibirá todos os parâmetros que o seu motor disponibilizar.</div></div>'
             : '') +
           '<div class="moncard"><b>🛥 Embarcação e segurança</b><ul>' + MONITORAVEIS_BASE.map((m) => '<li>' + esc(m) + '</li>').join('') + '</ul></div>' +
-        '</div></section>') +
+        '</div></section>')) +
     camSecaoHTML() +
     vibSecaoHTML() +
     '<section><h2>Investimento</h2>' +
@@ -1110,7 +1136,7 @@ function render() {
           ? '<div class="invest-hint">🎁 <b>Implementação isenta</b> — você paga apenas a <b>assinatura</b> (mensal ou anual) no fechamento.</div>'
           : '<div class="invest-hint">O investimento tem <b>dois componentes</b> — a <b>implementação</b> (única' + (cams() ? ', já com a' + (cams() > 1 ? 's ' + cams() + ' câmeras' : ' câmera') : '') + ') <b>+</b> a <b>assinatura</b> (mensal ou anual' + (cams() ? ', com a mensalidade da' + (cams() > 1 ? 's câmeras' : ' câmera') : '') + ') — <b>pagos juntos, em um único PIX, no fechamento</b>.</div>') +
         '<div class="invest">' +
-          '<div class="card"><div class="t">Implementação · pagamento único</div><div class="v">' + (implIsento() ? 'Isenta 🎁' : fmtBRL(implValor())) + '</div><div class="d">' + (implIsento() ? 'Cortesia SAFEBOAT — kit e instalação' : 'Kit completo + instalação') + ' por equipe técnica SAFEBOAT em <b>até 30 dias</b> após o pagamento.' + (cams() ? ' <b style="color:#2264BE">Inclui ' + cams() + ' câmera' + (cams() > 1 ? 's' : '') + ' (' + fmtBRL(camImpl()) + ').</b>' : '') + '</div></div>' +
+          '<div class="card"><div class="t">Implementação · pagamento único</div><div class="v">' + (implIsento() ? 'Isenta 🎁' : fmtBRL(implValor())) + '</div><div class="d">' + (implIsento() ? 'Cortesia SAFEBOAT — kit e instalação' : (vibSolo() ? 'Sensores VIB nas máquinas + instalação' : 'Kit completo + instalação')) + ' por equipe técnica SAFEBOAT em <b>até 30 dias</b> após o pagamento.' + (cams() ? ' <b style="color:#2264BE">Inclui ' + cams() + ' câmera' + (cams() > 1 ? 's' : '') + ' (' + fmtBRL(camImpl()) + ').</b>' : '') + '</div></div>' +
           '<div class="plusmark">+</div>' +
           '<div class="card plan" data-plano="mensal"><div class="mark"></div><div class="t">Assinatura mensal</div><div class="v">' + fmtBRL(assinValor('mensal')) + '<small>/mês</small></div><div class="d">1ª mensalidade paga no fechamento. O período de uso só começa após a implementação.</div>' + camAssinNota('mensal') + '</div>' +
           '<div class="oumark">OU</div>' +
@@ -1253,7 +1279,7 @@ function pagamentoHTML() {
   const renov = isRenov();
   const cab = renov ? 'renovação da assinatura' : (upg ? 'implementação do upgrade + assinatura' : (implIsento() ? 'assinatura (implementação isenta)' : 'implementação + assinatura'));
   const linhaCamImpl = (cams() ? '<div>Câmera' + (cams() > 1 ? 's' : '') + ' (' + cams() + ') · implantação <b style="float:right;margin-left:26px">' + fmtBRL(camImpl()) + '</b></div>' : '') +
-    (vibs() ? '<div>VIB (' + vibs() + ' motor' + (vibs() > 1 ? 'es' : '') + ') · implantação <b style="float:right;margin-left:26px">' + fmtBRL(vibImpl()) + '</b></div>' : '');
+    (vibs() ? '<div>VIB (' + maqTxt(vibs()) + ') · implantação <b style="float:right;margin-left:26px">' + fmtBRL(vibImpl()) + '</b></div>' : '');
   const linhaCamAssin = ((cams() && plano) ? '<div>Câmera' + (cams() > 1 ? 's' : '') + ' · acréscimo na assinatura <b style="float:right;margin-left:26px">' + fmtBRL(camAssin(p.plano)) + '</b></div>' : '') +
     ((vibs() && plano) ? '<div>VIB · acréscimo na assinatura <b style="float:right;margin-left:26px">' + fmtBRL(vibAssin(p.plano)) + '</b></div>' : '');
   const resumo = renov
@@ -1274,9 +1300,9 @@ function pagamentoHTML() {
       '</div>'
     : '<div style="display:inline-block;text-align:left;margin:6px auto 2px;font-size:13px;color:#3A3F4E">' +
         '<div>Implementação' + ' <b style="float:right;margin-left:26px">' + (implIsento() ? 'Isenta 🎁' : fmtBRL(implValor())) + '</b></div>' +
-        ((cams() || vibs()) ? '<div style="font-size:11.5px;color:#8A8F9C;margin:-2px 0 5px">kit do sistema ' + fmtBRL(p.valor) + (cams() ? ' + ' + cams() + ' câmera' + (cams() > 1 ? 's' : '') + ' ' + fmtBRL(camImpl()) : '') + (vibs() ? ' + VIB ' + fmtBRL(vibImpl()) : '') + '</div>' : '') +
+        ((cams() || vibs()) && !vibSolo() ? '<div style="font-size:11.5px;color:#8A8F9C;margin:-2px 0 5px">kit do sistema ' + fmtBRL(p.valor) + (cams() ? ' + ' + cams() + ' câmera' + (cams() > 1 ? 's' : '') + ' ' + fmtBRL(camImpl()) : '') + (vibs() ? ' + VIB ' + fmtBRL(vibImpl()) : '') + '</div>' : '') +
         (plano ? '<div>Assinatura ' + plano.label.toLowerCase() + (p.plano === 'anual' ? ' (anuidade integral)' : ' (1ª mensalidade)') + ' <b style="float:right;margin-left:26px">' + fmtBRL(assinValor(p.plano)) + '</b></div>' : '') +
-        (((cams() || vibs()) && plano) ? '<div style="font-size:11.5px;color:#8A8F9C;margin:-2px 0 5px">assinatura ' + fmtBRL(planoValor(p.plano)) + (cams() ? ' + câmeras ' + fmtBRL(camAssin(p.plano)) : '') + (vibs() ? ' + VIB ' + fmtBRL(vibAssin(p.plano)) : '') + '</div>' : '') +
+        (((cams() || vibs()) && plano && !vibSolo()) ? '<div style="font-size:11.5px;color:#8A8F9C;margin:-2px 0 5px">assinatura ' + fmtBRL(planoValor(p.plano)) + (cams() ? ' + câmeras ' + fmtBRL(camAssin(p.plano)) : '') + (vibs() ? ' + VIB ' + fmtBRL(vibAssin(p.plano)) : '') + '</div>' : '') +
         (p.plano === 'anual' && descPct() ? '<div>Desconto especial (' + descPct() + '% · fechamento na anuidade) <b style="float:right;margin-left:26px;color:#0B6B4D">− ' + fmtBRL(descontoAnual()) + '</b></div>' : '') +
         '<div style="border-top:1px solid #E3E5EB;margin-top:6px;padding-top:6px;font-weight:800;color:#2D324B">Total <span style="float:right;margin-left:26px;font-size:22px">' + fmtBRL(total) + '</span></div>' +
       '</div>';
@@ -1400,14 +1426,15 @@ function preencherContratoDOM(doc, ac) {
   set('dataExtenso', hoje.getDate() + ' de ' + MESES[hoje.getMonth()] + ' de ' + hoje.getFullYear());
 
   // valores — exatamente os mesmos exibidos na proposta
-  if (isRenov() && !Number(p.valor)) set('valorImpl', 'não se aplica (renovação sem alteração no sistema)');
+  if (vibSolo()) set('valorImpl', 'não se aplica — a implantação desta contratação é exclusivamente a do VIB (Cláusula 3.7.2 e Anexo II)');
+  else if (isRenov() && !Number(p.valor)) set('valorImpl', 'não se aplica (renovação sem alteração no sistema)');
   else if (isRenov()) set('valorImpl', fmtBRL(p.valor) + ' (implantação contratada nesta renovação — itens discriminados no Anexo I)');
   else if (!Number(p.valor)) set('valorImpl', 'isenta (cortesia SAFEBOAT)');
   else set('valorImpl', fmtBRL(p.valor) + (isUpgrade() ? ' (upgrade — adição de leitura de dados)' : ''));
 
   if (plano) {
     set('planoLabel', plano.label);
-    set('valorAssin', fmtBRL(planoValor(ac.plano)) + plano.sufixo);
+    set('valorAssin', vibSolo() ? 'composta exclusivamente pelo acréscimo do VIB (Cláusula 3.7.3)' : fmtBRL(planoValor(ac.plano)) + plano.sufixo);
   }
   set('valorTotal', fmtBRL(totalCom(ac.plano)));
 
