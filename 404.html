@@ -1032,10 +1032,16 @@ function render() {
   const upg = isUpgrade();
   const renov = isRenov();
   const f = fleet();
-  const kitItens = String(p.kit).split(' + ').filter((k) => k && k !== '#UPGRADE' && k !== '#RENOVACAO' && k.indexOf('#B2B=') !== 0 && k.indexOf('#CAM=') !== 0 && k.indexOf('#VIB=') !== 0 && k.indexOf('#DESC=') !== 0);
+  const kitItens = String(p.kit).split(' + ').filter((k) => k && k.charAt(0) !== '#');   // tudo que começa com # é marcador interno
   const termosUrl = (p.segmento === 'B2B' ? 'termos-b2b.html' : 'termos-b2c.html') + '?p=' + ref.n + '-' + ref.t;
   const numeroFmt = 'Nº ' + String(p.numero).padStart(4, '0');
-  const validade = (() => { const d = new Date(p.created_at || Date.now()); d.setDate(d.getDate() + 30); return fmtData(d.toISOString()); })();
+  /* Validade: padrão 30 dias, ou data fixa via marcador #VAL=AAAA-MM-DD */
+  const validade = (() => {
+    const t = String(p.kit || '').split(' + ').find((k) => k.indexOf('#VAL=') === 0);
+    if (t && /^d{4}-d{2}-d{2}$/.test(t.slice(5))) return fmtData(t.slice(5));
+    const d = new Date(p.created_at || Date.now()); d.setDate(d.getDate() + 30);
+    return fmtData(d.toISOString());
+  })();
 
   document.getElementById('app').innerHTML =
     '<div class="hero"><div class="hero-in"><div class="tx">' +
