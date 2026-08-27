@@ -1038,7 +1038,7 @@ function render() {
   /* Validade: padrão 30 dias, ou data fixa via marcador #VAL=AAAA-MM-DD */
   const validade = (() => {
     const t = String(p.kit || '').split(' + ').find((k) => k.indexOf('#VAL=') === 0);
-    if (t && /^d{4}-d{2}-d{2}$/.test(t.slice(5))) return fmtData(t.slice(5));
+    if (t && /^\d{4}-\d{2}-\d{2}$/.test(t.slice(5))) return fmtData(t.slice(5));
     const d = new Date(p.created_at || Date.now()); d.setDate(d.getDate() + 30);
     return fmtData(d.toISOString());
   })();
