@@ -75,7 +75,7 @@
 <div class="prot" id="clVib" style="display:none">
 <h2>3.7. Monitoramento de vibração VIB</h2>
 <p>3.7.1. A CONTRATANTE optou pelo monitoramento preditivo de vibração <b>SAFEBOAT VIB</b> em <span class="mf" data-mf="vibQtd">—</span> máquina(s) — motor(es) e/ou gerador(es) marítimo(s) —, por meio de sensores autônomos cedidos em <b>comodato</b> (Anexo I), fixados de forma não invasiva (adesivo naval, sem furos) e alimentados por bateria substituível. O VIB transmite pela rede <b>Wi-Fi da embarcação</b>, cuja disponibilidade e consumo de dados são de responsabilidade da CONTRATANTE.</p>
-<p>3.7.2. <b>Implantação do VIB.</b> Pela implantação, a CONTRATANTE pagará o valor de <span class="mf" data-mf="vibImplVal">R$ ____</span>, correspondente a R$ 600,00 (seiscentos reais) por máquina monitorada, em parcela única no ato do aceite, somado à taxa da Cláusula 3.1.</p>
+<p>3.7.2. <b>Implantação do VIB.</b> Pela implantação, a CONTRATANTE pagará <span class="mf" data-mf="vibImplVal">R$ ____</span>, em parcela única no ato do aceite, somado à taxa da Cláusula 3.1.</p>
 <p>3.7.3. <b>Acréscimo na assinatura.</b> A assinatura sofre acréscimo de <span class="mf" data-mf="vibUnitAssin">R$ ____</span> por máquina monitorada, totalizando <span class="mf" data-mf="vibAssinVal">R$ ____</span>, somado ao valor da Cláusula 3.2 e sujeito ao reajuste da Cláusula 3.4.</p>
 <p>3.7.4. <b>Natureza preditiva e auxiliar.</b> O VIB analisa tendências de vibração (espectro e severidade referenciada na norma ISO 10816) para <b>indicar probabilidade</b> de desgaste ou anomalia mecânica. Trata-se de ferramenta <b>informativa e auxiliar</b>: não constitui diagnóstico definitivo, não garante a antecipação ou detecção de toda e qualquer falha e <b>não substitui</b> as manutenções preventivas, revisões e inspeções recomendadas pelo fabricante do motor, que permanecem de responsabilidade da CONTRATANTE. Aplicam-se integralmente as Cláusulas 5 a 8.</p>
 <p>3.7.5. <b>Aprendizado inicial.</b> Nos primeiros dias de uso o sistema constrói a assinatura de vibração de referência de cada máquina; alertas preditivos passam a valer após esse período de aprendizado.</p>
@@ -272,7 +272,8 @@ function preencherContrato(p) {
   const implSist = Number(p.valor) || 0;
   const camImpl = nc * CAM.impl;
   const nv = vibsKit(p.kit);
-  const vibImplV = nv * VIBC.impl;
+  const vibIsentoV = String(p.kit || '').split(' + ').indexOf('#VIBISENTO') !== -1;   // cortesia
+  const vibImplV = vibIsentoV ? 0 : nv * VIBC.impl;
   const vibAssinV = nv * (anual ? VIBC.anual : VIBC.mensal);
   const plano = PLANOS[p.plano];
   const fb = fleetKit(p.kit);   // negociação por frota com valores próprios
@@ -322,15 +323,15 @@ function preencherContrato(p) {
     const bv = document.getElementById('clVib');
     if (bv) bv.style.display = '';
     set('vibQtd', String(nv));
-    set('vibImplVal', fmtBRL(vibImplV));
+    set('vibImplVal', vibIsentoV ? 'R$ 0,00 — implantação do VIB isenta, por cortesia da CONTRATADA (valor de referência R$ 600,00 por máquina)' : fmtBRL(vibImplV) + ' (R$ 600,00 por máquina monitorada)');
     set('vibUnitAssin', fmtBRL(anual ? VIBC.anual : VIBC.mensal) + (anual ? '/ano' : '/mês'));
     set('vibAssinVal', fmtBRL(vibAssinV) + (anual ? '/ano' : '/mês'));
     ['avLinhaVib', 'avLinhaVibAssin'].forEach((id) => { const tr = document.getElementById(id); if (tr) tr.style.display = ''; });
-    set('avVibImpl', fmtBRL(vibImplV));
+    set('avVibImpl', vibIsentoV ? 'isenta' : fmtBRL(vibImplV));
     set('avVibAssin', fmtBRL(vibAssinV));
   }
   if (nc > 0 || nv > 0) {
-    const nt = (nc > 0 && nv > 0) ? '3.8' : '3.7';
+    const nt = nv > 0 ? '3.8' : '3.7';
     set('numTotal', nt); set('numTotalA', nt + '.1'); set('numTotalB', nt + '.2');
     set('numTotalCam', (nc > 0 ? ' e 3.6.2' : '') + (nv > 0 ? ' e 3.7.2' : ''));
   }
@@ -341,7 +342,7 @@ function preencherContrato(p) {
   const itens = String(p.kit || '').split(' + ')
     .filter((k) => k && k.charAt(0) !== '#');
   if (nc > 0) itens.push(nc + ' × Câmera de segurança Wi-Fi Full HD');
-  if (nv > 0) itens.push(nv + ' × Sensor de vibração VIB (um por motor)');
+  if (nv > 0) itens.push(nv + ' × Sensor de vibração VIB (um por máquina — motor ou gerador)');
   const ul = document.getElementById('anexoItens');
   if (ul && itens.length) {
     ul.innerHTML = '';

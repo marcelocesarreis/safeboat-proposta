@@ -900,7 +900,8 @@ function vibs() {
   const t = String(p.kit || '').split(' + ').find((k) => k.indexOf('#VIB=') === 0);
   return t ? Math.min(8, Math.max(0, parseInt(t.slice(5), 10) || 0)) : 0;
 }
-const vibImpl = () => vibs() * VIB.impl;                   // implementação por motor (cobre o hardware de cada unidade)
+const vibIsento = () => String(p.kit || '').split(' + ').indexOf('#VIBISENTO') !== -1;   // cortesia: implantação do VIB isenta
+const vibImpl = () => vibIsento() ? 0 : vibs() * VIB.impl;   // implementação por máquina (cobre o hardware de cada unidade)
 const vibAssin = (plano) => vibs() * (plano === 'anual' ? VIB.anual : VIB.mensal);
 /* Proposta EXCLUSIVA do VIB: só os sensores — sem kit base nem assinatura de R$249 */
 const vibSolo = () => String(p.kit || '').split(' + ').indexOf('#VIBSOLO') !== -1;
@@ -1031,7 +1032,7 @@ function vibSecaoHTML() {
         '</div>' +
         '<div class="cam-req">📶 <b>Requer Wi-Fi a bordo.</b> O VIB transmite pela internet da embarcação — disponibilidade e consumo de dados por conta do usuário.</div>' +
         '<div class="cam-preco">' +
-          '<div><span>Implementação</span><b>' + n + ' × ' + fmtBRL(VIB.impl) + ' = ' + fmtBRL(n * VIB.impl) + '</b></div>' +
+          '<div><span>Implementação</span><b>' + (vibIsento() ? '<s style="color:#8A8F9C;font-weight:600">' + fmtBRL(n * VIB.impl) + '</s> Isenta 🎁 — cortesia SAFEBOAT' : n + ' × ' + fmtBRL(VIB.impl) + ' = ' + fmtBRL(n * VIB.impl)) + '</b></div>' +
           '<div><span>Assinatura mensal</span><b>' + (solo ? '' : '+ ') + fmtBRL(VIB.mensal) + ' por máquina/mês' + (n > 1 ? ' (' + n + '× = ' + fmtBRL(n * VIB.mensal) + '/mês)' : '') + '</b></div>' +
           '<div><span>Assinatura anual</span><b>' + (solo ? '' : '+ ') + fmtBRL(VIB.anual) + ' por máquina/ano' + (n > 1 ? ' (' + n + '× = ' + fmtBRL(n * VIB.anual) + '/ano)' : '') + ' <span style="font-weight:600;color:#0B6B4D">· paga 10 meses</span></b></div>' +
         '</div>' +
@@ -1053,7 +1054,10 @@ function camAssinNota(plano) {
 }
 
 function render() {
-  const temRede = p.rede === 'can' || p.rede === 'nmea';
+  const fRede = fleet();
+  const comRede = (l) => ['nmea', 'can'].indexOf(l.redeKey || l.rede) !== -1;
+  const barcosComRede = fRede ? fRede.lines.filter(comRede).reduce((s, l) => s + (Number(l.qtd) || 0), 0) : 0;
+  const temRede = fRede ? barcosComRede > 0 : (p.rede === 'can' || p.rede === 'nmea');
   const upg = isUpgrade();
   const renov = isRenov();
   const f = fleet();
@@ -1092,13 +1096,13 @@ function render() {
       ? '<section><h2>Renovação do seu contrato</h2><div class="moncard"><b>🔄 Renovação de assinatura — sem alteração no sistema</b><div style="margin-top:10px;font-size:13.5px;color:#3A3F4E;line-height:1.6">Seu equipamento SAFEBOAT já está instalado e funcionando. Esta proposta renova a sua assinatura para os próximos 12 meses (ou mensal), mantendo o monitoramento ativo — sem qualquer mudança de hardware ou nova instalação.</div></div></section>'
       : (f
           ? '<section><h2>Sua frota</h2><div class="moncard"><b>🚤 ' + f.boats + ' embarcações</b>' +
-              '<div style="margin-top:10px">' + f.lines.map((l) => '<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #EFF0F4;font-size:13.5px"><span><b>' + l.qtd + '×</b> ' + esc(REDE_NOME[l.redeKey] || l.label) + '</span><span style="color:#6B7080">kit por barco</span></div>').join('') + '</div>' +
+              '<div style="margin-top:10px">' + f.lines.map((l) => '<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #EFF0F4;font-size:13.5px"><span><b>' + l.qtd + '×</b> ' + esc(REDE_NOME[l.redeKey] || l.label) + '</span><span style="color:#6B7080">' + (comRede(l) ? 'kit + leitura de motorização' : 'kit por barco') + '</span></div>').join('') + '</div>' +
               '<div class="obs" style="margin-top:12px"><b>Cada barco</b> recebe o kit correspondente à sua rede: central SAFEBOAT, sensores de fumaça e alagamento e, quando aplicável, T NMEA, conversor J1939-NMEA e cabo NMEA. A instalação é feita embarcação por embarcação pela equipe técnica SAFEBOAT.</div></div></section>'
           : '<section><h2>Seu kit de instalação</h2><div class="eqgrid">' + kitItens.map(pubKitCard).join('') + camKitCards() + '</div></section>') +
         '<section><h2>O que será monitorado</h2><div class="mongrid">' +
           (temRede
-            ? '<div class="moncard"><b>🔧 Dados via rede CAN/NMEA — todos os parâmetros que o motor fornecer</b><ul>' + MONITORAVEIS_MOTOR.concat(MONITORAVEIS_EXTRA).map((m) => '<li>' + esc(m) + '</li>').join('') + '</ul>' +
-              (p.rede === 'can' && REDES.can.obs ? '<div class="obs"><b>Instalação:</b> ' + esc(REDES.can.obs) + '</div>' : '') +
+            ? '<div class="moncard"><b>🔧 Dados via rede CAN/NMEA — todos os parâmetros que o motor fornecer' + (fRede ? ' <span style="font-weight:600;color:#2264BE">· nos ' + barcosComRede + ' barco' + (barcosComRede > 1 ? 's' : '') + ' com rede NMEA/CAN</span>' : '') + '</b><ul>' + MONITORAVEIS_MOTOR.concat(MONITORAVEIS_EXTRA).map((m) => '<li>' + esc(m) + '</li>').join('') + '</ul>' +
+              ((p.rede === 'can' || (fRede && fRede.lines.some((l) => (l.redeKey || l.rede) === 'can'))) && REDES.can.obs ? '<div class="obs"><b>Instalação:</b> ' + esc(REDES.can.obs) + '</div>' : '') +
               '<div class="obs"><b>Obs.:</b> a disponibilidade de cada parâmetro depende do modelo do motor. Motores que não possuem o sensor correspondente não transmitem esse dado na rede — o SAFEBOAT exibirá todos os parâmetros que o seu motor disponibilizar.</div></div>'
             : '') +
           '<div class="moncard"><b>🛥 Embarcação e segurança</b><ul>' + MONITORAVEIS_BASE.map((m) => '<li>' + esc(m) + '</li>').join('') + '</ul></div>' +
@@ -1131,7 +1135,7 @@ function render() {
           '<div class="card plan" data-plano="anual"><div class="badge">' + seloAnual() + '</div><div class="mark"></div><div class="t">Assinatura anual</div><div class="v">' + fmtBRL(assinValor('anual')) + '<small>/ano</small></div><div class="d">Equivale a ' + fmtBRL(assinValor('anual') / 12) + '/mês — pago no fechamento junto da implementação.</div>' + camAssinNota('anual') + '</div>' +
         '</div></section>'
       : ((f
-          ? '<div class="invest-hint">Frota de <b>' + f.boats + ' embarcações</b>. A <b>implementação</b> soma o setup de cada barco (conforme a rede) e a <b>assinatura</b> é de <b>' + fmtBRL(f.subMensal) + '/barco/mês</b> — total <b>' + fmtBRL(planoValor('mensal')) + '/mês</b> ou <b>' + fmtBRL(planoValor('anual')) + '/ano</b>.</div>'
+          ? '<div class="invest-hint">Frota de <b>' + f.boats + ' embarcações</b>. A <b>implementação</b> soma o setup de cada barco (conforme a rede) e a <b>assinatura</b> é de <b>' + fmtBRL(f.subMensal) + '/barco/mês</b> — total <b>' + fmtBRL(planoValor('mensal')) + '/mês</b> ou <b>' + fmtBRL(planoValor('anual')) + '/ano</b>.' + (vibs() ? ' Com o VIB em ' + maqTxt(vibs()) + ': <b>' + fmtBRL(assinValor('mensal')) + '/mês</b> ou <b>' + fmtBRL(assinValor('anual')) + '/ano</b>.' : '') + '</div>'
           : implIsento()
           ? '<div class="invest-hint">🎁 <b>Implementação isenta</b> — você paga apenas a <b>assinatura</b> (mensal ou anual) no fechamento.</div>'
           : '<div class="invest-hint">O investimento tem <b>dois componentes</b> — a <b>implementação</b> (única' + (cams() ? ', já com a' + (cams() > 1 ? 's ' + cams() + ' câmeras' : ' câmera') : '') + ') <b>+</b> a <b>assinatura</b> (mensal ou anual' + (cams() ? ', com a mensalidade da' + (cams() > 1 ? 's câmeras' : ' câmera') : '') + ') — <b>pagos juntos, em um único PIX, no fechamento</b>.</div>') +
@@ -1279,7 +1283,7 @@ function pagamentoHTML() {
   const renov = isRenov();
   const cab = renov ? 'renovação da assinatura' : (upg ? 'implementação do upgrade + assinatura' : (implIsento() ? 'assinatura (implementação isenta)' : 'implementação + assinatura'));
   const linhaCamImpl = (cams() ? '<div>Câmera' + (cams() > 1 ? 's' : '') + ' (' + cams() + ') · implantação <b style="float:right;margin-left:26px">' + fmtBRL(camImpl()) + '</b></div>' : '') +
-    (vibs() ? '<div>VIB (' + maqTxt(vibs()) + ') · implantação <b style="float:right;margin-left:26px">' + fmtBRL(vibImpl()) + '</b></div>' : '');
+    (vibs() ? '<div>VIB (' + maqTxt(vibs()) + ') · implantação <b style="float:right;margin-left:26px">' + (vibIsento() ? 'Isenta 🎁' : fmtBRL(vibImpl())) + '</b></div>' : '');
   const linhaCamAssin = ((cams() && plano) ? '<div>Câmera' + (cams() > 1 ? 's' : '') + ' · acréscimo na assinatura <b style="float:right;margin-left:26px">' + fmtBRL(camAssin(p.plano)) + '</b></div>' : '') +
     ((vibs() && plano) ? '<div>VIB · acréscimo na assinatura <b style="float:right;margin-left:26px">' + fmtBRL(vibAssin(p.plano)) + '</b></div>' : '');
   const resumo = renov
@@ -1300,7 +1304,7 @@ function pagamentoHTML() {
       '</div>'
     : '<div style="display:inline-block;text-align:left;margin:6px auto 2px;font-size:13px;color:#3A3F4E">' +
         '<div>Implementação' + ' <b style="float:right;margin-left:26px">' + (implIsento() ? 'Isenta 🎁' : fmtBRL(implValor())) + '</b></div>' +
-        ((cams() || vibs()) && !vibSolo() ? '<div style="font-size:11.5px;color:#8A8F9C;margin:-2px 0 5px">kit do sistema ' + fmtBRL(p.valor) + (cams() ? ' + ' + cams() + ' câmera' + (cams() > 1 ? 's' : '') + ' ' + fmtBRL(camImpl()) : '') + (vibs() ? ' + VIB ' + fmtBRL(vibImpl()) : '') + '</div>' : '') +
+        ((cams() || vibs()) && !vibSolo() ? '<div style="font-size:11.5px;color:#8A8F9C;margin:-2px 0 5px">kit do sistema ' + fmtBRL(p.valor) + (cams() ? ' + ' + cams() + ' câmera' + (cams() > 1 ? 's' : '') + ' ' + fmtBRL(camImpl()) : '') + (vibs() ? ' + VIB ' + (vibIsento() ? 'isenta' : fmtBRL(vibImpl())) : '') + '</div>' : '') +
         (plano ? '<div>Assinatura ' + plano.label.toLowerCase() + (p.plano === 'anual' ? ' (anuidade integral)' : ' (1ª mensalidade)') + ' <b style="float:right;margin-left:26px">' + fmtBRL(assinValor(p.plano)) + '</b></div>' : '') +
         (((cams() || vibs()) && plano && !vibSolo()) ? '<div style="font-size:11.5px;color:#8A8F9C;margin:-2px 0 5px">assinatura ' + fmtBRL(planoValor(p.plano)) + (cams() ? ' + câmeras ' + fmtBRL(camAssin(p.plano)) : '') + (vibs() ? ' + VIB ' + fmtBRL(vibAssin(p.plano)) : '') + '</div>' : '') +
         (p.plano === 'anual' && descPct() ? '<div>Desconto especial (' + descPct() + '% · fechamento na anuidade) <b style="float:right;margin-left:26px;color:#0B6B4D">− ' + fmtBRL(descontoAnual()) + '</b></div>' : '') +
@@ -1461,16 +1465,16 @@ function preencherContratoDOM(doc, ac) {
   if (nv > 0) {
     mostrar('clVib'); mostrar('avLinhaVib'); mostrar('avLinhaVibAssin');
     set('vibQtd', String(nv));
-    set('vibImplVal', fmtBRL(vibImpl()));
+    set('vibImplVal', vibIsento() ? 'R$ 0,00 — implantação do VIB isenta, por cortesia da CONTRATADA (valor de referência R$ 600,00 por máquina)' : fmtBRL(vibImpl()) + ' (R$ 600,00 por máquina monitorada)');
     set('vibUnitAssin', fmtBRL(anual ? VIB.anual : VIB.mensal) + (anual ? '/ano' : '/mês'));
     set('vibAssinVal', fmtBRL(vibAssin(ac.plano)) + (anual ? '/ano' : '/mês'));
-    set('avVibImpl', fmtBRL(vibImpl()));
+    set('avVibImpl', vibIsento() ? 'isenta' : fmtBRL(vibImpl()));
     set('avVibAssin', fmtBRL(vibAssin(ac.plano)));
   }
 
   // renumeração da cláusula de total conforme os opcionais presentes
   if (n > 0 || nv > 0) {
-    const nt = (n > 0 && nv > 0) ? '3.8' : '3.7';
+    const nt = nv > 0 ? '3.8' : '3.7';
     set('numTotal', nt); set('numTotalA', nt + '.1'); set('numTotalB', nt + '.2');
     set('numTotalCam', (n > 0 ? ' e 3.6.2' : '') + (nv > 0 ? ' e 3.7.2' : ''));
   }
