@@ -902,7 +902,12 @@ function vibs() {
 }
 const vibIsento = () => String(p.kit || '').split(' + ').indexOf('#VIBISENTO') !== -1;   // cortesia: implantação do VIB isenta
 const vibImpl = () => vibIsento() ? 0 : vibs() * VIB.impl;   // implementação por máquina (cobre o hardware de cada unidade)
-const vibAssin = (plano) => vibs() * (plano === 'anual' ? VIB.anual : VIB.mensal);
+/* Frota (B2B): o gestor paga R$39,90/máquina/mês (R$399/ano) e revende a R$49,90 */
+const VIB_B2B = { mensal: 39.90, anual: 399.00, revenda: 49.90 };
+const vibUnit = (plano) => fleet()
+  ? (plano === 'anual' ? VIB_B2B.anual : VIB_B2B.mensal)
+  : (plano === 'anual' ? VIB.anual : VIB.mensal);
+const vibAssin = (plano) => vibs() * vibUnit(plano);
 /* Proposta EXCLUSIVA do VIB: só os sensores — sem kit base nem assinatura de R$249 */
 const vibSolo = () => String(p.kit || '').split(' + ').indexOf('#VIBSOLO') !== -1;
 const maqTxt = (n) => n + ' máquina' + (n > 1 ? 's' : '');
@@ -1033,8 +1038,8 @@ function vibSecaoHTML() {
         '<div class="cam-req">📶 <b>Requer Wi-Fi a bordo.</b> O VIB transmite pela internet da embarcação — disponibilidade e consumo de dados por conta do usuário.</div>' +
         '<div class="cam-preco">' +
           '<div><span>Implementação</span><b>' + (vibIsento() ? '<s style="color:#8A8F9C;font-weight:600">' + fmtBRL(n * VIB.impl) + '</s> Isenta 🎁 — cortesia SAFEBOAT' : n + ' × ' + fmtBRL(VIB.impl) + ' = ' + fmtBRL(n * VIB.impl)) + '</b></div>' +
-          '<div><span>Assinatura mensal</span><b>' + (solo ? '' : '+ ') + fmtBRL(VIB.mensal) + ' por máquina/mês' + (n > 1 ? ' (' + n + '× = ' + fmtBRL(n * VIB.mensal) + '/mês)' : '') + '</b></div>' +
-          '<div><span>Assinatura anual</span><b>' + (solo ? '' : '+ ') + fmtBRL(VIB.anual) + ' por máquina/ano' + (n > 1 ? ' (' + n + '× = ' + fmtBRL(n * VIB.anual) + '/ano)' : '') + ' <span style="font-weight:600;color:#0B6B4D">· paga 10 meses</span></b></div>' +
+          '<div><span>Assinatura mensal</span><b>' + (solo ? '' : '+ ') + fmtBRL(vibUnit('mensal')) + ' por máquina/mês' + (n > 1 ? ' (' + n + '× = ' + fmtBRL(n * vibUnit('mensal')) + '/mês)' : '') + (fleet() ? ' <span style="font-weight:600;color:#0B6B4D">· preço de gestor — revenda a ' + fmtBRL(VIB_B2B.revenda) + '</span>' : '') + '</b></div>' +
+          '<div><span>Assinatura anual</span><b>' + (solo ? '' : '+ ') + fmtBRL(vibUnit('anual')) + ' por máquina/ano' + (n > 1 ? ' (' + n + '× = ' + fmtBRL(n * vibUnit('anual')) + '/ano)' : '') + ' <span style="font-weight:600;color:#0B6B4D">· paga 10 meses</span></b></div>' +
         '</div>' +
       '</div>' +
     '</div></section>';
@@ -1147,6 +1152,7 @@ function render() {
           '<div class="card plan" data-plano="anual"><div class="badge">' + seloAnual() + '</div><div class="mark"></div><div class="t">Assinatura anual</div><div class="v">' + fmtBRL(assinValor('anual')) + '<small>/ano</small></div><div class="d">Equivale a ' + fmtBRL(assinValor('anual') / 12) + '/mês. O período anual só começa após a implementação.</div>' + camAssinNota('anual') + '</div>' +
         '</div></section>'))) +
     descontoBoxHTML() +
+    lucroGestorHTML() +
     '<section id="secAceite"></section>' +
     '</main>' +
     '<footer>SAFEBOAT TECNOLOGIA LTDA · CNPJ 52.998.441/0001-28 · A inteligência que protege seu patrimônio</footer>' +
@@ -1213,6 +1219,32 @@ function descontoBoxHTML() {
       '<span style="white-space:nowrap"><s style="color:#8A8F9C;font-size:14px">' + fmtBRL(bruto) + '</s> <b style="color:#0B6B4D;font-size:24px">' + fmtBRL(total) + '</b></span></div>' +
     '<div style="margin-top:8px;font-size:12px;color:#4E5666">Válido apenas para o plano anual — no mensal valem os valores integrais.</div>' +
   '</div></section>';
+}
+
+/* Fim da proposta B2B: quanto o gestor lucra revendendo sistema e VIB aos
+   usuários dos barcos pelo preço de cliente final SAFEBOAT. */
+function lucroGestorHTML() {
+  const f = fleet();
+  if (!f || isUpgrade()) return '';
+  const boats = Number(f.boats) || 0, nv = vibs();
+  const revBarco = Number(f.revendaMensal) || PLANOS.mensal.valor;   // preço de cliente final SAFEBOAT
+  const revVib = VIB.mensal;
+  const custoM = Number(f.subMensal) || 0, custoA = (Number(f.subAnual) || 0) / 12;
+  const vibM = vibUnit('mensal'), vibA = vibUnit('anual') / 12;
+  const r2 = (v) => Math.round(v * 100) / 100;
+  const bruto = r2(boats * revBarco + nv * revVib);
+  const lucroM = r2(boats * (revBarco - custoM) + nv * (revVib - vibM));
+  const lucroA = r2(boats * (revBarco - custoA) + nv * (revVib - vibA));
+  const linha = (t, v, forte) => '<div style="display:flex;justify-content:space-between;gap:14px;padding:8px 0;border-bottom:1px solid #DCEEE2;font-size:13.5px"><span>' + t + '</span><b style="color:#0B6B4D;white-space:nowrap' + (forte ? ';font-size:17px' : '') + '">' + v + '</b></div>';
+  return '<section><h2>Sua receita como gestor da frota</h2>' +
+    '<div style="background:#F0FAF4;border:1.5px solid #9AD4AE;border-radius:16px;padding:20px 22px">' +
+      '<div style="font-size:13.5px;color:#3A3F4E;line-height:1.6;margin-bottom:10px">Você contrata a SAFEBOAT pelo <b>preço de gestor</b> e revende a cada usuário dos barcos pelo <b>preço de cliente final SAFEBOAT</b> — ' + fmtBRL(revBarco) + '/barco/mês' + (nv ? ' e ' + fmtBRL(revVib) + '/máquina/mês do VIB' : '') + '. A diferença fica com você, todo mês.</div>' +
+      linha('Sistema SAFEBOAT · ' + boats + ' barco' + (boats > 1 ? 's' : '') + ' <span style="color:#6B7080">· você paga ' + fmtBRL(custoM) + ' e cobra ' + fmtBRL(revBarco) + ' por barco</span>', '+ ' + fmtBRL(r2(boats * (revBarco - custoM))) + '/mês') +
+      (nv ? linha('VIB · ' + maqTxt(nv) + ' <span style="color:#6B7080">· você paga ' + fmtBRL(vibM) + ' e cobra ' + fmtBRL(revVib) + ' por máquina</span>', '+ ' + fmtBRL(r2(nv * (revVib - vibM))) + '/mês') : '') +
+      linha('<b>Seu lucro no plano mensal</b>', fmtBRL(lucroM) + '/mês', true) +
+      linha('<b>Seu lucro fechando a anuidade</b> <span style="color:#6B7080">· você paga 10 meses e cobra 12</span>', fmtBRL(lucroA) + '/mês · ' + fmtBRL(r2(lucroA * 12)) + '/ano', true) +
+      '<div style="margin-top:10px;font-size:12.5px;color:#4E5666">Faturamento bruto da frota com os usuários: <b>' + fmtBRL(bruto) + '/mês</b>. O preço que você pratica com seus clientes é de sua livre definição — os valores acima usam a tabela de cliente final da SAFEBOAT como referência.</div>' +
+    '</div></section>';
 }
 
 function ctaLabel() {
@@ -1466,7 +1498,7 @@ function preencherContratoDOM(doc, ac) {
     mostrar('clVib'); mostrar('avLinhaVib'); mostrar('avLinhaVibAssin');
     set('vibQtd', String(nv));
     set('vibImplVal', vibIsento() ? 'R$ 0,00 — implantação do VIB isenta, por cortesia da CONTRATADA (valor de referência R$ 600,00 por máquina)' : fmtBRL(vibImpl()) + ' (R$ 600,00 por máquina monitorada)');
-    set('vibUnitAssin', fmtBRL(anual ? VIB.anual : VIB.mensal) + (anual ? '/ano' : '/mês'));
+    set('vibUnitAssin', fmtBRL(vibUnit(ac.plano)) + (anual ? '/ano' : '/mês'));
     set('vibAssinVal', fmtBRL(vibAssin(ac.plano)) + (anual ? '/ano' : '/mês'));
     set('avVibImpl', vibIsento() ? 'isenta' : fmtBRL(vibImpl()));
     set('avVibAssin', fmtBRL(vibAssin(ac.plano)));
