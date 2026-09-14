@@ -201,7 +201,7 @@ const CAM = { impl: Math.round(411.24 * 1.15 * 100) / 100, mensal: 29.90, anual:
 function camsKit(kit) { const t = String(kit || '').split(' + ').find((k) => k.indexOf('#CAM=') === 0); return t ? Math.max(0, parseInt(t.slice(5), 10) || 0) : 0; }
 /* VIB: R$600/máquina de implantação (ou isenta — #VIBISENTO) e 49,90/máquina/mês ou 499/ano */
 const VIBC = { impl: 600, mensal: 49.90, anual: 499.00 };
-function vibsKit(kit) { const t = String(kit || '').split(' + ').find((k) => k.indexOf('#VIB=') === 0); return t ? Math.min(8, Math.max(0, parseInt(t.slice(5), 10) || 0)) : 0; }
+function vibsKit(kit) { const t = String(kit || '').split(' + ').find((k) => k.indexOf('#VIB=') === 0); return t ? Math.min(99, Math.max(0, parseInt(t.slice(5), 10) || 0)) : 0; }
 
 function parseRef() {
   const q = new URLSearchParams(location.search).get('p') || '';

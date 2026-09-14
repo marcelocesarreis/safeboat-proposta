@@ -898,7 +898,7 @@ const camImpl = () => cams() * camUnitImpl();              // acréscimo na impl
 /* VIB: quantidade de motores no marcador #VIB=<n> */
 function vibs() {
   const t = String(p.kit || '').split(' + ').find((k) => k.indexOf('#VIB=') === 0);
-  return t ? Math.min(8, Math.max(0, parseInt(t.slice(5), 10) || 0)) : 0;
+  return t ? Math.min(99, Math.max(0, parseInt(t.slice(5), 10) || 0)) : 0;
 }
 const vibIsento = () => String(p.kit || '').split(' + ').indexOf('#VIBISENTO') !== -1;   // cortesia: implantação do VIB isenta
 const vibImpl = () => vibIsento() ? 0 : vibs() * VIB.impl;   // implementação por máquina (cobre o hardware de cada unidade)
