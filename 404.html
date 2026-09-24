@@ -1430,7 +1430,7 @@ function termSecaoHTML() {
   const comboBox = nc
     ? '<div style="margin-top:12px;background:#F0FAF4;border:1.5px solid #9AD4AE;border-radius:14px;padding:14px 16px">' +
         '<div style="font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#0B6B4D;font-weight:800">🎯 Combo Boat Show · Motor Completo · ' + nc + ' motor' + (nc > 1 ? 'es' : '') + '</div>' +
-        '<div style="margin-top:6px;font-size:13.5px;color:#3A3F4E;line-height:1.6"><b>VIB ouve, térmica enxerga.</b> Em cada motor, um sensor VIB na caixa reversora e uma câmera térmica na praça de máquinas — mecânica e calor cobertos, no mesmo app.</div>' +
+        '<div style="margin-top:6px;font-size:13.5px;color:#3A3F4E;line-height:1.6"><b>VIB ouve, térmica enxerga, a rede CAN conta o resto.</b> Em cada motor, um sensor VIB na caixa reversora e uma câmera térmica na praça de máquinas, somados aos dados do motor lidos pela rede CAN — mecânica, calor e parâmetros do motor, no mesmo app. VIB e térmica em condição promocional por serem contratados junto do plano completo com leitura do motor.</div>' +
         '<div class="cam-preco" style="margin-top:8px">' +
           '<div><span>Implementação</span><b>' + nc + ' × ' + fmtBRL(COMBO.impl) + ' = ' + fmtBRL(nc * COMBO.impl) + (comboImpl() < nc * COMBO.impl ? ' → <span style="color:#0B6B4D">' + (comboImpl() ? fmtBRL(comboImpl()) + ' (parte isenta 🎁)' : 'Isenta 🎁') + '</span>' : '') + '</b></div>' +
           '<div><span>Assinatura mensal</span><b>' + fmtBRL(comboUnit('mensal')) + ' por motor/mês' + (nc > 1 ? ' (' + nc + '× = ' + fmtBRL(comboAssin('mensal')) + '/mês)' : '') + ' <span style="font-weight:600;color:#0B6B4D">· em vez de ' + fmtBRL(b2b ? 79.80 : 99.80) + '</span>' + (b2b ? ' <span style="font-weight:600;color:#0B6B4D">· gestor revende a ' + fmtBRL(COMBO_B2B.revenda) + '</span>' : '') + '</b></div>' +
@@ -1468,7 +1468,7 @@ function vibSecaoHTML() {
         '<button type="button" class="saiba" data-alvo="vibMais">Saiba mais ▾</button>' +
         '<div id="vibMais" class="mais"' + (solo ? '' : ' hidden') + '>' +
           '<p>O que ele antecipa: <b>problemas de combustão</b>, <b>desalinhamento de eixos</b>, <b>desbalanceamento de hélices</b>, <b>falhas estruturais</b> (coxins, fixações e buchas) e <b>falhas em rolamentos</b> — em motores e também em <b>geradores marítimos</b>. Tudo aparece na vibração muito antes de virar quebra, fumaça ou reboque — o VIB acompanha a tendência e avisa no app enquanto o reparo ainda é simples e barato. A IA aprende, sozinha, a assinatura de CADA máquina na primeira semana de uso.</p>' +
-          '<div class="cam-req" style="background:#EEF3FB;border-color:#C6D8F2;color:#16335E">🌊 <b>Feito para o mar:</b> a análise espectral (FFT, severidade conforme a norma ISO 10816) separa o balanço das ondas da assinatura mecânica da máquina — direto no sensor. Sem fios: fixação adesiva naval e bateria substituível, sem furos e sem mexer na elétrica.</div>' +
+          '<div class="cam-req" style="background:#EEF3FB;border-color:#C6D8F2;color:#16335E">🌊 <b>Feito para o mar:</b> a análise espectral (FFT, severidade conforme a norma ISO 10816) separa o balanço das ondas da assinatura mecânica da máquina — direto no sensor. Sem fios: fixação adesiva naval e bateria recarregável, sem furos e sem mexer na elétrica.</div>' +
         '</div>' +
         '<div class="cam-req">📶 <b>Requer Wi-Fi a bordo.</b> O VIB transmite pela internet da embarcação — disponibilidade e consumo de dados por conta do usuário.</div>' +
         '<div class="cam-preco">' +
