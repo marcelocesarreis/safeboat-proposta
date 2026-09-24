@@ -1135,7 +1135,7 @@ const CAMERA = { nome: 'Câmera Wi-Fi Full HD', precoUnit: 411.24, markup: 0.15,
 /* VIB — sensor de vibração autônomo com IA: manutenção preditiva de motores
    E geradores marítimos (1 a 8 máquinas). Implementação R$600 POR MÁQUINA
    (cobre o hardware de cada unidade); assinatura +R$49,90/máquina/mês ou
-   +R$499,00/máquina/ano (regra dos 10 meses). Requer Wi-Fi a bordo.
+   +R$499,00/máquina/ano (regra dos 10 meses). Conversa com a central SAFEBOAT (Wi-Fi só no Somente VIB, sem central).
    Como opcional (#VIB=n) ou como proposta EXCLUSIVA (#VIBSOLO, sem kit base). */
 const VIB = { nome: 'VIB — sensor de vibração', mensal: 49.90, anual: 499.00, impl: 600, img: 'img/eq-vib.png' };
 const camUnitImpl = () => Math.round(CAMERA.precoUnit * (1 + CAMERA.markup) * 100) / 100;
@@ -1470,7 +1470,9 @@ function vibSecaoHTML() {
           '<p>O que ele antecipa: <b>problemas de combustão</b>, <b>desalinhamento de eixos</b>, <b>desbalanceamento de hélices</b>, <b>falhas estruturais</b> (coxins, fixações e buchas) e <b>falhas em rolamentos</b> — em motores e também em <b>geradores marítimos</b>. Tudo aparece na vibração muito antes de virar quebra, fumaça ou reboque — o VIB acompanha a tendência e avisa no app enquanto o reparo ainda é simples e barato. A IA aprende, sozinha, a assinatura de CADA máquina na primeira semana de uso.</p>' +
           '<div class="cam-req" style="background:#EEF3FB;border-color:#C6D8F2;color:#16335E">🌊 <b>Feito para o mar:</b> a análise espectral (FFT, severidade conforme a norma ISO 10816) separa o balanço das ondas da assinatura mecânica da máquina — direto no sensor. Sem fios: fixação adesiva naval e bateria recarregável, sem furos e sem mexer na elétrica.</div>' +
         '</div>' +
-        '<div class="cam-req">📶 <b>Requer Wi-Fi a bordo.</b> O VIB transmite pela internet da embarcação — disponibilidade e consumo de dados por conta do usuário.</div>' +
+        (solo
+          ? '<div class="cam-req">📶 <b>Requer Wi-Fi a bordo.</b> Sem a central SAFEBOAT, o VIB transmite pela internet da embarcação — disponibilidade e consumo de dados por conta do usuário.</div>'
+          : '<div class="cam-req" style="background:#EEF3FB;border-color:#C6D8F2;color:#16335E">📡 <b>Conversa direto com a central SAFEBOAT.</b> Não precisa de Wi-Fi nem de internet própria — usa a conexão do sistema já instalado.</div>') +
         '<div class="cam-preco">' +
           '<div><span>Implementação</span><b>' + (vibIsento() ? '<s style="color:#8A8F9C;font-weight:600">' + fmtBRL(n * VIB.impl) + '</s> Isenta 🎁 — cortesia SAFEBOAT' : n + ' × ' + fmtBRL(VIB.impl) + ' = ' + fmtBRL(n * VIB.impl)) + '</b></div>' +
           '<div><span>Assinatura mensal</span><b>' + (solo ? '' : '+ ') + fmtBRL(vibUnit('mensal')) + ' por máquina/mês' + (n > 1 ? ' (' + n + '× = ' + fmtBRL(n * vibUnit('mensal')) + '/mês)' : '') + (fleet() ? ' <span style="font-weight:600;color:#0B6B4D">· preço de gestor — revenda a ' + fmtBRL(VIB_B2B.revenda) + '</span>' : '') + '</b></div>' +
