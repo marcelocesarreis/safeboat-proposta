@@ -654,7 +654,15 @@ const MP_IMPL = {
   '7325.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-49fa8e70-ec6f-44e9-b511-4cba58bab3e2',
   '7625.86': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=2519354942-d998357f-9546-4078-afda-8b14f6f5845d',
 };
-const mpImplUrl = (v) => MP_IMPL[Number(v).toFixed(2)] || null;
+/* Links SOB DEMANDA (RPC prop_pagamento_link): quando o valor exato não existe
+   nas tabelas (desconto multi-barco, combinações novas), a proposta pede ao
+   Supabase um link do Mercado Pago com o valor exato — assinatura recorrente,
+   ativação+instalação (à vista ou até 12x, juros por conta do cliente) e anual. */
+const MP_DIN = { unico: {}, anual: {}, mensal: {} };
+let MP_CARREGANDO = false;
+const MP_TENTADO = {};
+const mpDin = (tipo, v) => MP_DIN[tipo][Number(v).toFixed(2)] || null;
+const mpImplUrl = (v) => MP_IMPL[Number(v).toFixed(2)] || mpDin('unico', v) || null;
 /* Contratação ANUAL no cartão (pagamento único: 1x sem juros; até 12x com juros
    por conta do comprador — padrão MP). Total = ativação + anuidade.
    Valor fora da tabela: só PIX. */
@@ -1609,7 +1617,7 @@ const MP_ANUAL = {
 function cartaoAvulsoUrl() {
   if (recorrenciaInfo(p.plano)) return null;   // frota: só acha link se o valor exato foi criado
   const total = totalCom(p.plano);
-  return MP_ANUAL[Number(total).toFixed(2)] || null;
+  return MP_ANUAL[Number(total).toFixed(2)] || mpDin('anual', total) || null;
 }
 
 
@@ -1937,14 +1945,14 @@ const descontoAnual = () => {
 function recorrenciaInfo(plano) {
   if (plano !== 'mensal') return null;
   const v = assinCom('mensal');   // upgrade e renovação: assinatura cheia pelo sistema (líquida do desconto multi-barco, se houver)
-  if (vibSolo()) return { valorMes: v, url: mpPlanoUrl('vib', v) };   // exclusivo VIB
-  if (fleet()) {
-    // frota: só entra na recorrência se existir plano criado para ESTE valor
+  if (vibSolo()) return { valorMes: v, url: mpPlanoUrl('vib', v) || mpDin('mensal', v) };   // exclusivo VIB
+  if (fleetB2B()) {
+    // frota de gestor (B2B): só entra na recorrência se existir plano criado para ESTE valor
     // (negociações sob medida); frotas padrão seguem no faturamento
-    const url = mpPlanoUrl('full', v);
+    const url = mpPlanoUrl('full', v) || mpDin('mensal', v);
     return url ? { valorMes: v, url } : null;
   }
-  return { valorMes: v, url: mpPlanoUrl('full', v) };
+  return { valorMes: v, url: mpPlanoUrl('full', v) || mpDin('mensal', v) };   // B2C (inclusive multi-barco): link da tabela ou sob demanda
 }
 const recorrenciaObrigatoria = (plano) => !!recorrenciaInfo(plano);
 
@@ -2357,6 +2365,7 @@ function renderAceite() {
       '<a href="contrato.html?p=' + ref.n + '-' + ref.t + '" target="_blank" style="display:inline-block;margin-top:14px;background:#2D324B;color:#fff;text-decoration:none;border-radius:10px;padding:11px 20px;font-size:13.5px;font-weight:700">📜 Ver contrato assinado (PDF)</a></div>' +
       pagamentoHTML();
     wirePagamento();
+    garantirLinksMP();
     return;
   }
   const gIcon = '<svg width="17" height="17" viewBox="0 0 48 48" style="flex:none"><path fill="#4285F4" d="M45 24c0-1.6-.1-2.8-.4-4H24v7.6h12c-.2 2-1.6 5-4.6 7l7 5.4C42.8 42 45 33.9 45 24z"/><path fill="#34A853" d="M24 46c6.5 0 11.9-2.1 15.9-5.8l-7-5.4c-2 1.3-4.5 2.1-8.9 2.1-6.3 0-11.6-4.2-13.5-9.9l-7.2 5.6C7.8 40.5 15.3 46 24 46z"/><path fill="#FBBC05" d="M10.5 27c-.5-1.5-.8-3.1-.8-4.9s.3-3.4.8-4.9l-7.2-5.6C1.9 15 1 19.4 1 22.1s.9 7.1 2.3 10.5l7.2-5.6z"/><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.2-6.2C35.9 3.3 30.5 1 24 1 15.3 1 7.8 6.5 4.3 14.6l7.2 5.6C13.4 13.7 18.7 9.5 24 9.5z"/></svg>';
@@ -2385,6 +2394,38 @@ function renderAceite() {
   const bg = document.getElementById('socGoogle'); if (bg) bg.addEventListener('click', () => loginSocial('google'));
   const ba = document.getElementById('socApple'); if (ba) ba.addEventListener('click', () => loginSocial('apple'));
   document.getElementById('btnAceitar').addEventListener('click', aceitarProposta);
+}
+
+/* Quais links do cartão esta proposta aceita precisa e ainda não tem */
+function linksNecessarios() {
+  if (p.status !== 'aceita' || !p.plano || fleetB2B()) return [];
+  const L = [];
+  if (p.plano === 'mensal') {
+    const v = assinCom('mensal');
+    if (v > 0 && !(vibSolo() ? mpPlanoUrl('vib', v) : mpPlanoUrl('full', v)) && !mpDin('mensal', v)) L.push(['mensal', v]);
+    const u = unicoCom();
+    if (u > 0 && !mpImplUrl(u)) L.push(['unico', u]);
+  } else if (p.plano === 'anual') {
+    const tot = totalCom('anual');
+    if (tot > 0 && !cartaoAvulsoUrl()) L.push(['anual', tot]);
+  }
+  return L;
+}
+async function garantirLinksMP() {
+  const need = linksNecessarios().filter(([t, v]) => !MP_TENTADO[t + Number(v).toFixed(2)]);
+  if (!need.length) return;
+  need.forEach(([t, v]) => { MP_TENTADO[t + Number(v).toFixed(2)] = true; });
+  MP_CARREGANDO = true;
+  renderAceite();   // mostra "preparando o link…"
+  let novos = 0;
+  for (const [t, v] of need) {
+    try {
+      const j = await rpc('prop_pagamento_link', { n: ref.n, t: ref.t, p_tipo: t, p_valor: Number(v).toFixed(2) });
+      if (j && j.url) { MP_DIN[t][Number(v).toFixed(2)] = j.url; novos++; }
+    } catch (e) { /* sem link: fica o PIX / equipe */ }
+  }
+  MP_CARREGANDO = false;
+  renderAceite();
 }
 
 function pagamentoHTML() {
@@ -2446,7 +2487,7 @@ function pagamentoHTML() {
     const btnRec = rec.url
       ? '<a href="' + rec.url + '" target="_blank" rel="noopener"><button class="btnc" style="background:#2264BE">💳 Ativar assinatura no cartão — ' + fmtBRL(rec.valorMes) + '/mês</button></a>' +
         '<div style="font-size:12px;color:#4E5666">Débito automático mensal no cartão (Mercado Pago) · não compromete o limite · 1ª cobrança na ativação</div>'
-      : '<div style="font-size:13px;color:#6B4E12;background:#FFF6E6;border:1px solid #F3D699;border-radius:10px;padding:10px 14px;text-align:left">💳 Para esta configuração, nossa equipe enviará em seguida o link de ativação da assinatura no cartão (' + fmtBRL(rec.valorMes) + '/mês).</div>';
+      : '<div style="font-size:13px;color:#6B4E12;background:#FFF6E6;border:1px solid #F3D699;border-radius:10px;padding:10px 14px;text-align:left">' + (MP_CARREGANDO ? '⏳ Preparando o link da assinatura no cartão (' + fmtBRL(rec.valorMes) + '/mês)…' : '💳 Para esta configuração, nossa equipe enviará em seguida o link de ativação da assinatura no cartão (' + fmtBRL(rec.valorMes) + '/mês).') + '</div>';
     inner = '<div style="font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#8A8F9C;font-weight:700">Pagamento · assinatura recorrente' + (implValor() ? ' + ' + unicoNome() : '') + '</div>' +
       resumoRec +
       '<div style="margin:6px 0 2px;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#8A8F9C;font-weight:700">1 · Assinatura mensal no cartão</div>' +
@@ -2455,8 +2496,8 @@ function pagamentoHTML() {
         ? '<div style="margin:16px 0 2px;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#8A8F9C;font-weight:700">2 · ' + cap(unicoNome()) + ' — PIX ou cartão, como preferir</div>' +
           (mpImplUrl(unicoCom())
             ? '<a href="' + mpImplUrl(unicoCom()) + '" target="_blank" rel="noopener"><button class="btnc" style="background:#2264BE">💳 Pagar ' + unicoNome() + ' no cartão — ' + fmtBRL(unicoCom()) + '</button></a>' +
-              '<div style="font-size:12px;color:#4E5666;margin-bottom:8px">Pagamento único no cartão (Mercado Pago) · ou, se preferir, use o PIX abaixo</div>'
-            : '') +
+              '<div style="font-size:12px;color:#4E5666;margin-bottom:8px">À vista ou <b>em até 12x</b> no cartão (Mercado Pago · juros do parcelamento por conta do cliente) · ou, se preferir, use o PIX abaixo</div>'
+            : (MP_CARREGANDO ? '<div style="font-size:12px;color:#8A8F9C;margin-bottom:8px">⏳ Preparando o link para pagar no cartão (à vista ou em até 12x)…</div>' : '')) +
           '<div id="pixQr"></div>' +
           '<div style="font-size:12.5px;color:#4E5666">Escaneie com o app do seu banco · Favorecido: ' + esc(PAGAMENTO.pixNome) + '</div>' +
           '<div class="copia" id="pixCopia"></div>' +
@@ -2472,8 +2513,8 @@ function pagamentoHTML() {
       resumo +
       (urlCartao
         ? '<a href="' + urlCartao + '" target="_blank" rel="noopener"><button class="btnc" style="background:#2264BE">💳 Pagar no cartão — ' + fmtBRL(total) + '</button></a>' +
-          '<div style="font-size:12px;color:#4E5666;margin-bottom:8px">1x sem juros · em até 12x com juros da operadora · ou, se preferir, use o PIX abaixo</div>'
-        : '') +
+          '<div style="font-size:12px;color:#4E5666;margin-bottom:8px">1x sem juros · <b>em até 12x</b> com juros da operadora por conta do cliente · ou, se preferir, use o PIX abaixo</div>'
+        : (MP_CARREGANDO ? '<div style="font-size:12px;color:#8A8F9C;margin-bottom:8px">⏳ Preparando o link para pagar no cartão (à vista ou em até 12x)…</div>' : '')) +
       '<div id="pixQr"></div>' +
       '<div style="font-size:12.5px;color:#4E5666">Escaneie com o app do seu banco · Favorecido: ' + esc(PAGAMENTO.pixNome) + '</div>' +
       '<div class="copia" id="pixCopia"></div>' +
