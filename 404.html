@@ -94,6 +94,19 @@
   .card.inst.sel .mark { border-color: #2264BE; background: #2264BE; }
   .card.inst.sel .mark:after { content: "✓"; color: #fff; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center; height: 100%; }
   .card.inst .v { font-size: 24px; }
+  .comp { width: 100%; border-collapse: collapse; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 10px rgba(26,31,43,.08); font-size: 13.5px; }
+  .comp th { font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: #8A8F9C; font-weight: 800; text-align: right; padding: 14px 16px 8px; }
+  .comp th:first-child { text-align: left; }
+  .comp td { padding: 11px 16px; border-top: 1px solid #EFF0F4; text-align: right; white-space: nowrap; color: #2D324B; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .comp td:first-child { text-align: left; white-space: normal; }
+  .comp td small { display: block; font-weight: 500; color: #8A8F9C; font-size: 12px; }
+  .comp tr.desc td { color: #0B6B4D; }
+  .comp tr.tot td { background: #F4F5F8; font-size: 16px; font-weight: 800; border-top: 2px solid #2D324B; }
+  .comp-nota { font-size: 12.5px; color: #4E5666; margin-top: 10px; }
+  .incl { margin-top: 12px; font-size: 13px; color: #0B6B4D; font-weight: 700; background: #F0FAF4; border-radius: 10px; padding: 9px 14px; }
+  .passo { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: #2264BE; color: #fff; font-size: 14px; font-weight: 800; margin-right: 8px; vertical-align: 2px; }
+  .fech { margin-top: 8px; padding-top: 8px; border-top: 1px solid #EFF0F4; font-size: 13px; color: #2D324B; }
+  @media (max-width: 480px) { .comp th, .comp td { padding: 10px 10px; font-size: 12.5px; } .comp tr.tot td { font-size: 14px; } }
   .instdet { margin-top: 10px; border-top: 1px solid #EFF0F4; padding-top: 8px; font-size: 12px; color: #4E5666; }
   .instdet div { display: flex; justify-content: space-between; gap: 10px; padding: 2px 0; }
   .card .badge { position: absolute; top: -11px; right: 14px; background: #0B6B4D; color: #fff; font-size: 11px; font-weight: 700; border-radius: 20px; padding: 3px 11px; }
@@ -1985,11 +1998,11 @@ function camSecaoHTML() {
       '<div class="cam-tx">' +
         '<p>Monitore o convés, o cockpit e os acessos em vídeo Full HD 1080p, com visão noturna e acesso ao vivo pelo app — integrado à sua central SAFEBOAT.</p>' +
         '<div class="cam-req">🛰 <b>Requer Starlink instalada a bordo.</b> A câmera transmite vídeo pela internet do barco. O <b>consumo de dados e energia é conforme a demanda e de responsabilidade do usuário</b> — a SAFEBOAT não se responsabiliza pela franquia/consumo do serviço de internet.</div>' +
-        '<div class="cam-preco">' +
+        (novoLayout() ? inclHTML() : '<div class="cam-preco">' +
           '<div><span>Ativação</span><b>' + n + ' × ' + fmtBRL(camUnitImpl()) + ' = ' + fmtBRL(camImpl()) + '</b></div>' +
           '<div><span>Assinatura mensal</span><b>+ ' + fmtBRL(CAMERA.mensal) + ' por câmera/mês' + (n > 1 ? ' (' + n + '× = ' + fmtBRL(n * CAMERA.mensal) + '/mês)' : '') + '</b></div>' +
           '<div><span>Assinatura anual</span><b>+ ' + fmtBRL(CAMERA.anual) + ' por câmera/ano' + (n > 1 ? ' (' + n + '× = ' + fmtBRL(n * CAMERA.anual) + '/ano)' : '') + ' <span style="font-weight:600;color:#0B6B4D">· paga 10 meses</span></b></div>' +
-        '</div>' +
+        '</div>') +
       '</div>' +
     '</div></section>';
 }
@@ -2001,7 +2014,7 @@ function termSecaoHTML() {
   const b2b = !!fleet();
   const u1 = termUnit1('mensal'), ua = termUnitAdic('mensal'), u1a = termUnit1('anual'), uaa = termUnitAdic('anual');
   const precoTerm = n
-    ? '<div class="cam-preco">' +
+    ? novoLayout() ? inclHTML() : '<div class="cam-preco">' +
         '<div><span>Ativação</span><b>' + (termIsento() ? '<s style="color:#8A8F9C;font-weight:600">' + fmtBRL(n * TERM.impl) + '</s> Isenta 🎁 — cortesia SAFEBOAT' : n + ' × ' + fmtBRL(TERM.impl) + ' = ' + fmtBRL(n * TERM.impl) + ' <span style="font-weight:600;color:#0B6B4D">· lançamento (tabela ' + fmtBRL(TERM.implTabela) + ')</span>') + '</b></div>' +
         '<div><span>Assinatura mensal</span><b>' + (nc ? '+ ' + fmtBRL(ua) + ' por câmera adicional/mês (' + n + '× = ' + fmtBRL(termAssin('mensal')) + '/mês)' : '+ ' + fmtBRL(u1) + ' pela 1ª câmera' + (n > 1 ? ' + ' + fmtBRL(ua) + ' por câmera adicional (' + n + '× = ' + fmtBRL(termAssin('mensal')) + '/mês)' : '') ) + (b2b ? ' <span style="font-weight:600;color:#0B6B4D">· preço de gestor — revenda a ' + fmtBRL(TERM_B2B.revenda1) + '</span>' : '') + '</b></div>' +
         '<div><span>Assinatura anual</span><b>' + (nc ? '+ ' + fmtBRL(uaa) + ' por câmera adicional/ano (' + n + '× = ' + fmtBRL(termAssin('anual')) + '/ano)' : '+ ' + fmtBRL(u1a) + ' pela 1ª câmera' + (n > 1 ? ' + ' + fmtBRL(uaa) + ' por adicional (' + n + '× = ' + fmtBRL(termAssin('anual')) + '/ano)' : '')) + ' <span style="font-weight:600;color:#0B6B4D">· paga 10 meses</span></b></div>' +
@@ -2011,11 +2024,11 @@ function termSecaoHTML() {
     ? '<div style="margin-top:12px;background:#F0FAF4;border:1.5px solid #9AD4AE;border-radius:14px;padding:14px 16px">' +
         '<div style="font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#0B6B4D;font-weight:800">🎯 Combo Motor Completo · ' + nc + ' motor' + (nc > 1 ? 'es' : '') + '</div>' +
         '<div style="margin-top:6px;font-size:13.5px;color:#3A3F4E;line-height:1.6"><b>VIB ouve, térmica enxerga, a rede CAN conta o resto.</b> Em cada motor, um sensor VIB na caixa reversora e uma câmera térmica na praça de máquinas, somados aos dados do motor lidos pela rede CAN — mecânica, calor e parâmetros do motor, no mesmo app. VIB e térmica em condição promocional por serem contratados junto do plano completo com leitura do motor.</div>' +
-        '<div class="cam-preco" style="margin-top:8px">' +
+        (novoLayout() ? inclHTML() : '<div class="cam-preco" style="margin-top:8px">' +
           '<div><span>Ativação</span><b>' + nc + ' × ' + fmtBRL(COMBO.impl) + ' = ' + fmtBRL(nc * COMBO.impl) + (comboImpl() < nc * COMBO.impl ? ' → <span style="color:#0B6B4D">' + (comboImpl() ? fmtBRL(comboImpl()) + ' (parte isenta 🎁)' : 'Isenta 🎁') + '</span>' : '') + '</b></div>' +
           '<div><span>Assinatura mensal</span><b>' + fmtBRL(comboUnit('mensal')) + ' por motor/mês' + (nc > 1 ? ' (' + nc + '× = ' + fmtBRL(comboAssin('mensal')) + '/mês)' : '') + ' <span style="font-weight:600;color:#0B6B4D">· em vez de ' + fmtBRL(b2b ? 79.80 : 99.80) + '</span>' + (b2b ? ' <span style="font-weight:600;color:#0B6B4D">· gestor revende a ' + fmtBRL(COMBO_B2B.revenda) + '</span>' : '') + '</b></div>' +
           '<div><span>Assinatura anual</span><b>' + fmtBRL(comboUnit('anual')) + ' por motor/ano' + (nc > 1 ? ' (' + nc + '× = ' + fmtBRL(comboAssin('anual')) + '/ano)' : '') + ' <span style="font-weight:600;color:#0B6B4D">· paga 10 meses</span></b></div>' +
-        '</div></div>'
+        '</div>') + '</div>'
     : '';
   return '<section><h2>Câmera térmica com IA — vê o calor antes do fogo <span style="font-size:13px;font-weight:700;color:#2264BE">· lançamento · ' + tot + ' câmera' + (tot > 1 ? 's' : '') + '</span></h2>' +
     '<div class="cam-wrap">' +
@@ -2053,11 +2066,11 @@ function vibSecaoHTML() {
         (solo
           ? '<div class="cam-req">📶 <b>Requer Wi-Fi a bordo.</b> Sem a central SAFEBOAT, o VIB transmite pela internet da embarcação — disponibilidade e consumo de dados por conta do usuário.</div>'
           : '<div class="cam-req" style="background:#EEF3FB;border-color:#C6D8F2;color:#16335E">📡 <b>Conversa direto com a central SAFEBOAT.</b> Não precisa de Wi-Fi nem de internet própria — usa a conexão do sistema já instalado.</div>') +
-        '<div class="cam-preco">' +
+        (novoLayout() ? inclHTML() : '<div class="cam-preco">' +
           '<div><span>Ativação</span><b>' + (vibIsento() ? '<s style="color:#8A8F9C;font-weight:600">' + fmtBRL(n * VIB.impl) + '</s> Isenta 🎁 — cortesia SAFEBOAT' : n + ' × ' + fmtBRL(VIB.impl) + ' = ' + fmtBRL(n * VIB.impl)) + '</b></div>' +
           '<div><span>Assinatura mensal</span><b>' + (solo ? '' : '+ ') + fmtBRL(vibUnit('mensal')) + ' por máquina/mês' + (n > 1 ? ' (' + n + '× = ' + fmtBRL(n * vibUnit('mensal')) + '/mês)' : '') + (fleetB2B() ? ' <span style="font-weight:600;color:#0B6B4D">· preço de gestor — revenda a ' + fmtBRL(VIB_B2B.revenda) + '</span>' : '') + '</b></div>' +
           '<div><span>Assinatura anual</span><b>' + (solo ? '' : '+ ') + fmtBRL(vibUnit('anual')) + ' por máquina/ano' + (n > 1 ? ' (' + n + '× = ' + fmtBRL(n * vibUnit('anual')) + '/ano)' : '') + ' <span style="font-weight:600;color:#0B6B4D">· paga 10 meses</span></b></div>' +
-        '</div>' +
+        '</div>') +
       '</div>' +
     '</div></section>';
 }
@@ -2135,44 +2148,8 @@ function render() {
     vibSecaoHTML() +
     termSecaoHTML() +
     instSecaoHTML() +
-    '<section><h2>Investimento</h2>' +
-    (renov
-      ? '<div class="invest-hint">Seu contrato SAFEBOAT venceu. Renove sua assinatura para continuar com o monitoramento ativo — escolha mensal ou anual.' +
-          (implValor() ? ' Esta renovação também inclui uma <b>ativação de ' + fmtBRL(implValor()) + '</b> (' + listaImpl() + '), paga junto no fechamento.' : '') +
-        '</div>' +
-        '<div class="invest">' +
-          (implValor()
-            ? '<div class="card"><div class="t">Ativação · pagamento único</div><div class="v">' + fmtBRL(implValor()) + '</div><div class="d">Inclui <b>' + listaImpl() + '</b>. ' +
-                ((p.rede === 'nmea' || p.rede === 'can') ? 'Sua embarcação passa a ler os dados do motor, que hoje você não tem. ' : '') +
-                'Instalação por equipe técnica SAFEBOAT em <b>até 30 dias</b> após o pagamento.</div></div>' +
-              '<div class="plusmark">+</div>'
-            : '') +
-          '<div class="card plan" data-plano="mensal"><div class="mark"></div><div class="t">Renovação mensal</div><div class="v">' + fmtBRL(assinValor('mensal')) + '<small>/mês</small></div><div class="d">Renova mês a mês. Cancele quando quiser.</div>' + camAssinNota('mensal') + '</div>' +
-          '<div class="oumark">OU</div>' +
-          '<div class="card plan" data-plano="anual"><div class="badge">' + seloAnual() + '</div><div class="mark"></div><div class="t">Renovação anual</div><div class="v">' + fmtBRL(assinValor('anual')) + '<small>/ano</small></div><div class="d">Equivale a ' + fmtBRL(assinValor('anual') / 12) + '/mês. 12 meses de monitoramento contínuo.</div>' + camAssinNota('anual') + '</div>' +
-        '</div></section>'
-      : (upg
-      ? '<div class="invest-hint">Você já é cliente SAFEBOAT. Este <b>upgrade</b> tem uma <b>ativação única de ' + fmtBRL(implValor()) + '</b> (' + listaImpl() + '). Sua assinatura — <b>mesmo valor de hoje</b> — passa a ser contratada e cobrada <b>pelo sistema SAFEBOAT</b>: escolha mensal ou anual abaixo.</div>' +
-        '<div class="invest">' +
-          '<div class="card"><div class="t">Upgrade · ativação única</div><div class="v">' + fmtBRL(implValor()) + '</div><div class="d">Inclui <b>' + listaImpl() + '</b>. Instalação por equipe técnica SAFEBOAT em <b>até 30 dias</b> após o pagamento, pago no fechamento.' + (cams() ? ' <b style="color:#2264BE">Câmeras: ' + fmtBRL(camImpl()) + '.</b>' : '') + '</div></div>' +
-          '<div class="plusmark" style="background:#0B6B4D">✓</div>' +
-          '<div class="card plan" data-plano="mensal"><div class="mark"></div><div class="t">Assinatura mensal</div><div class="v">' + vMulti(assinValor('mensal'), assinCom('mensal')) + '<small>/mês</small></div><div class="d">Mesmo valor da sua assinatura atual — agora com cobrança recorrente pelo sistema (1ª cobrança na ativação).</div>' + camAssinNota('mensal') + '</div>' +
-          '<div class="oumark">OU</div>' +
-          '<div class="card plan" data-plano="anual"><div class="badge">' + seloAnual() + '</div><div class="mark"></div><div class="t">Assinatura anual</div><div class="v">' + fmtBRL(assinValor('anual')) + '<small>/ano</small></div><div class="d">Equivale a ' + fmtBRL(assinValor('anual') / 12) + '/mês — pago no fechamento junto da ativação.</div>' + camAssinNota('anual') + '</div>' +
-        '</div></section>'
-      : ((f
-          ? '<div class="invest-hint">' + (multiBarco() ? 'Suas <b>' + f.boats + ' embarcações</b> na mesma proposta' : 'Frota de <b>' + f.boats + ' embarcações</b>') + '. A <b>ativação</b> soma o hardware em comodato de cada barco (conforme a rede)' + (instValor() ? ', a <b>instalação</b> pela rede de instaladores SAFEBOAT (' + fmtBRL(instValor()) + ')' : '') + ' e a <b>assinatura</b> é de <b>' + fmtBRL(f.subMensal) + '/barco/mês</b> — total <b>' + fmtBRL(planoValor('mensal')) + '/mês</b> ou <b>' + fmtBRL(planoValor('anual')) + '/ano</b>.' + (vibs() ? ' Com o VIB em ' + maqTxt(vibs()) + ': <b>' + fmtBRL(assinValor('mensal')) + '/mês</b> ou <b>' + fmtBRL(assinValor('anual')) + '/ano</b>.' : '') + '</div>'
-          : implIsento()
-          ? '<div class="invest-hint">🎁 <b>Ativação isenta</b> — você paga apenas a <b>assinatura</b> (mensal ou anual) no fechamento.</div>'
-          : '<div class="invest-hint">O investimento tem <b>dois componentes</b> — a <b>' + unicoNome() + '</b> (única' + (cams() ? ', já com a' + (cams() > 1 ? 's ' + cams() + ' câmeras' : ' câmera') : '') + ') <b>+</b> a <b>assinatura</b> (mensal ou anual' + (cams() ? ', com a mensalidade da' + (cams() > 1 ? 's câmeras' : ' câmera') : '') + ') — <b>pagos juntos, em um único PIX, no fechamento</b>.</div>') +
-        '<div class="invest">' +
-          '<div class="card"><div class="t">' + (instValor() ? 'Ativação + instalação' : 'Ativação') + ' · pagamento único</div><div class="v">' + (implIsento() ? 'Isenta 🎁' : vMulti(implValor(), unicoCom())) + '</div><div class="d">' + unicoDescHTML() + '</div></div>' +
-          '<div class="plusmark">+</div>' +
-          '<div class="card plan" data-plano="mensal"><div class="mark"></div><div class="t">Assinatura mensal</div><div class="v">' + vMulti(assinValor('mensal'), assinCom('mensal')) + '<small>/mês</small></div><div class="d">1ª mensalidade paga no fechamento. O período de uso só começa após a instalação e ativação.</div>' + camAssinNota('mensal') + '</div>' +
-          '<div class="oumark">OU</div>' +
-          '<div class="card plan" data-plano="anual"><div class="badge">' + seloAnual() + '</div><div class="mark"></div><div class="t">Assinatura anual</div><div class="v">' + vMulti(assinValor('anual'), assinCom('anual')) + '<small>/ano</small></div><div class="d">Equivale a ' + fmtBRL(assinCom('anual') / 12) + '/mês. O período anual só começa após a instalação e ativação.</div>' + camAssinNota('anual') + '</div>' +
-        '</div></section>'))) +
-    multiBoxHTML() +
+    '<section><h2>Resumo do investimento</h2>' +
+    novaInvestHTML() +
     descontoBoxHTML() +
     lucroGestorHTML() +
     '<section id="secAceite"></section>' +
@@ -2206,20 +2183,78 @@ function render() {
   renderAceite();
 }
 
+/* Layout simplificado (proposta nova, multi-barco, frota, VIB solo): os opcionais não
+   repetem preço; tudo aparece UMA vez na tabela de composição e o cliente faz só duas
+   escolhas — quem instala (passo 1) e o plano (passo 2). */
+const novoLayout = () => true;   // vale para nova, multi-barco, frota, VIB solo, upgrade e renovação
+const inclHTML = () => '<div class="incl">✓ Incluído nesta proposta — o valor está no resumo do investimento, mais abaixo.</div>';
+function compLinhas() {
+  const f = fleet(), L = [];
+  const nBarcos = f ? ' · ' + f.boats + ' embarcações' : '';
+  const baseItens = [];
+  if (p.rede === 'nmea' || p.rede === 'can') baseItens.push('leitura de motorização');
+  if (String(p.kit || '').split(' + ').includes('Sensor de consumo de bateria')) baseItens.push('sensor de consumo de bateria');
+  if (isRenov()) L.push({ t: 'Renovação da assinatura' + nBarcos, s: Number(p.valor) && baseItens.length ? 'inclui ' + baseItens.join(' e ') : 'sem alteração no sistema instalado', u: Number(p.valor) || 0, m: planoValor('mensal') });
+  else if (isUpgrade()) L.push({ t: 'Upgrade do seu SAFEBOAT' + nBarcos, s: (baseItens.length ? baseItens.join(' e ') + ' · ' : '') + 'assinatura no mesmo valor de hoje', u: Number(p.valor) || 0, m: planoValor('mensal') });
+  else if (!vibSolo()) L.push({ t: 'Sistema SAFEBOAT' + nBarcos, s: f ? 'kit de cada barco conforme a rede + monitoramento 24 h' : 'kit completo em comodato + monitoramento 24 h', u: Number(p.valor) || 0, uTxt: Number(p.valor) ? '' : 'Isenta 🎁', m: planoValor('mensal') });
+  if (cams()) L.push({ t: 'Câmera' + (cams() > 1 ? 's' : '') + ' Wi-Fi Full HD · ' + cams(), u: camImpl(), m: camAssin('mensal') });
+  if (vibs()) L.push({ t: 'VIB · ' + maqTxt(vibs()), s: 'sensor de vibração com IA', u: vibImpl(), uTxt: vibIsento() ? 'Isenta 🎁' : '', m: vibAssin('mensal') });
+  if (combos()) L.push({ t: 'Combo Motor Completo · ' + combos(), s: 'VIB + câmera térmica por motor', u: comboImpl(), uTxt: comboImpl() ? '' : 'Isenta 🎁', m: comboAssin('mensal') });
+  if (terms()) L.push({ t: 'Câmera' + (terms() > 1 ? 's' : '') + ' térmica' + (terms() > 1 ? 's' : '') + ' com IA · ' + terms(), s: termIsento() ? '' : 'preço de lançamento', u: termImpl(), uTxt: termIsento() ? 'Isenta 🎁' : '', m: termAssin('mensal') });
+  const e = instEscolha();
+  if (e === 'SB') L.push({ t: 'Instalação', s: 'pelos instaladores SAFEBOAT, em até 30 dias', u: instValor(), m: 0 });
+  if (e === 'PROPRIO') L.push({ t: 'Instalação', s: 'pelo seu instalador — enviamos o kit', u: 0, uTxt: 'sem custo', m: 0 });
+  return L;
+}
+function novaInvestHTML() {
+  const L = compLinhas();
+  const cel = (v, txt) => txt || (v ? fmtBRL(v) : '—');
+  const linhas = L.map((l) => '<tr><td>' + esc(l.t) + (l.s ? '<small>' + esc(l.s) + '</small>' : '') + '</td><td>' + cel(l.u, l.uTxt) + '</td><td>' + cel(l.m) + '</td></tr>').join('');
+  const dU = Math.round((implValor() - unicoCom()) * 100) / 100, dM = Math.round((assinValor('mensal') - assinCom('mensal')) * 100) / 100;
+  const desc = multiPct() ? '<tr class="desc"><td>Desconto multi-barco · ' + String(multiPct()).replace('.', ',') + '%<small>por contratar mais de uma embarcação</small></td><td>' + (dU ? '− ' + fmtBRL(dU) : '—') + '</td><td>' + (dM ? '− ' + fmtBRL(dM) : '—') + '</td></tr>' : '';
+  const passo = instAplica() ? '<span class="passo">2</span>' : '';
+  const unico = unicoCom();
+  const partes = (plano) => (unico ? unicoNome() + ' + ' : '') + (plano === 'anual' ? 'anuidade (12 meses)' : '1ª mensalidade');
+  const depois = fleetB2B() ? 'Depois, faturamento mensal.' : 'Depois, débito mensal no cartão.';
+  const intro = isRenov()
+    ? '<div class="invest-hint">Seu contrato SAFEBOAT venceu. Renove a assinatura para continuar com o monitoramento ativo.</div>'
+    : (isUpgrade() ? '<div class="invest-hint">Você já é cliente SAFEBOAT. O upgrade tem um pagamento único e a sua assinatura passa a ser contratada pelo sistema.</div>' : '');
+  const notaUso = isRenov() ? 'O monitoramento continua ativo, sem interrupção.' : (isUpgrade() ? 'As novas leituras passam a valer depois da instalação.' : 'O período de uso só começa a contar depois da instalação e ativação do sistema.');
+  return intro + '<div style="overflow-x:auto"><table class="comp">' +
+      '<thead><tr><th>O que está incluído</th><th>Pagamento único</th><th>Por mês</th></tr></thead><tbody>' +
+      linhas + desc +
+      '<tr class="tot"><td>Total</td><td>' + (unico ? fmtBRL(unico) : (isRenov() ? '—' : 'Isento 🎁')) + '</td><td>' + fmtBRL(assinCom('mensal')) + '</td></tr>' +
+      '</tbody></table></div>' +
+    '<div class="comp-nota">' + (unico || !isRenov() ? 'O <b>pagamento único</b> é feito uma vez, no fechamento' + (unico ? ' (hardware em comodato' + (instValor() ? ' e instalação' : '') + ')' : '') + '. ' : '') + ' O valor <b>por mês</b> é a sua assinatura — escolha abaixo se prefere pagar mensal ou anual.</div>' +
+    '</section>' +
+    '<section id="secPlano"><h2>' + passo + 'Como prefere pagar a assinatura?</h2>' +
+    '<div class="invest">' +
+      '<div class="card plan" data-plano="mensal"><div class="mark"></div><div class="t">Mensal</div><div class="v">' + fmtBRL(assinCom('mensal')) + '<small>/mês</small></div>' +
+        '<div class="d">' + depois + '</div>' +
+        '<div class="fech">No fechamento: <b>' + fmtBRL(totalCom('mensal')) + '</b><br><span style="color:#8A8F9C;font-size:12px">' + partes('mensal') + '</span></div></div>' +
+      '<div class="oumark">OU</div>' +
+      '<div class="card plan" data-plano="anual"><div class="badge">2 meses grátis</div><div class="mark"></div><div class="t">Anual</div><div class="v">' + fmtBRL(assinCom('anual')) + '<small>/ano</small></div>' +
+        '<div class="d">Você paga 10 meses e usa 12' + (descPct() ? ' — já com o desconto especial de ' + descPct() + '% no fechamento' : '') + '.</div>' +
+        '<div class="fech">No fechamento: <b>' + fmtBRL(totalCom('anual')) + '</b><br><span style="color:#8A8F9C;font-size:12px">' + partes('anual') + '</span></div></div>' +
+    '</div>' +
+    '<div class="comp-nota">' + notaUso + '</div>' +
+    '</section>';
+}
+
 /* Pergunta da qualificação: quem instala o SAFEBOAT no barco. */
 function instSecaoHTML() {
   if (!instAplica()) return '';
   const d = instDet();
   const e = instEscolha();
   const det = d.itens.map((i) => '<div><span>' + esc(i.t) + '</span><b>' + fmtBRL(i.v) + '</b></div>').join('');
-  return '<section id="secInst"><h2>Instalação</h2>' +
-    '<div class="invest-hint">Quem vai instalar o SAFEBOAT no seu barco? Os equipamentos são cedidos em <b>comodato</b> (taxa de ativação) e a instalação é uma escolha sua.' + (p.status === 'aceita' ? '' : ' Toque para escolher.') + '</div>' +
+  return '<section id="secInst"><h2><span class="passo">1</span>Quem instala o SAFEBOAT?</h2>' +
+    '<div class="invest-hint">' + (p.status === 'aceita' ? 'Escolha feita no aceite.' : 'Toque na opção que preferir. O resumo logo abaixo se ajusta na hora.') + '</div>' +
     '<div class="invest">' +
-      '<div class="card inst' + (e === 'SB' ? ' sel' : '') + '" data-inst="SB"><div class="mark"></div><div class="t">Instaladores SAFEBOAT</div><div class="v">' + fmtBRL(d.total) + '</div>' +
+      '<div class="card inst' + (e === 'SB' ? ' sel' : '') + '" data-inst="SB"><div class="mark"></div><div class="t">Instaladores SAFEBOAT</div><div class="v">+ ' + fmtBRL(d.total) + '</div>' +
         '<div class="d">Quero que os <b>instaladores da SAFEBOAT</b> instalem no meu barco — rede credenciada, em <b>até 30 dias</b> após o pagamento.</div>' +
-        '<div class="instdet">' + det + '</div></div>' +
+        '</div>' +
       '<div class="oumark">OU</div>' +
-      '<div class="card inst' + (e === 'PROPRIO' ? ' sel' : '') + '" data-inst="PROPRIO"><div class="mark"></div><div class="t">Tenho meu instalador</div><div class="v">Sem custo de instalação</div>' +
+      '<div class="card inst' + (e === 'PROPRIO' ? ' sel' : '') + '" data-inst="PROPRIO"><div class="mark"></div><div class="t">Tenho meu instalador</div><div class="v">Sem custo</div>' +
         '<div class="d">Quero receber o <b>kit completo</b> para a instalação pelo meu instalador. Enviamos o kit com o guia de instalação e o monitoramento é <b>ativado após a instalação</b>, com validação remota da SAFEBOAT.</div></div>' +
     '</div></section>';
 }
