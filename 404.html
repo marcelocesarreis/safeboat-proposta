@@ -1841,6 +1841,9 @@ const vibSolo = () => String(p.kit || '').split(' + ').indexOf('#VIBSOLO') !== -
 /* Aditivo (#UPGRADE + #ADITIVO): cliente já assinante que adiciona opcionais. A assinatura
    vigente NÃO é recobrada — só a ativação dos novos itens e o acréscimo mensal/anual. */
 const aditivo = () => String(p.kit || '').split(' + ').indexOf('#ADITIVO') !== -1;
+/* #JAINST: sistema já instalado e em operação (barcos em demonstração que passam a pagar).
+   A proposta só inicia a assinatura — os textos de kit/instalação/prazo não se aplicam. */
+const jaInst = () => String(p.kit || '').split(' + ').indexOf('#JAINST') !== -1;
 const maqTxt = (n) => n + ' máquina' + (n > 1 ? 's' : '');
 /* O que a ativação cobre — em upgrade e renovação ela pode ser leitura de
    motorização, sensor de corrente, câmeras, ou uma combinação. */
@@ -2121,7 +2124,7 @@ function render() {
       '<div class="chips">' +
         '<span class="chip">📅 ' + fmtData(p.created_at) + '</span>' +
         '<span class="chip">⏳ Válida até ' + validade + '</span>' +
-        '<span class="chip">' + (vibSolo() ? '📳 VIB — monitoramento preditivo' : '🔧 ' + (renov ? '🔄 Renovação de assinatura' : upg ? (aditivo() ? '➕ Upgrade — novos equipamentos' : '⬆ Upgrade — acesso à rede NMEA') : esc((REDES[p.rede] || {}).label || ''))) + '</span>' +
+        '<span class="chip">' + (vibSolo() ? '📳 VIB — monitoramento preditivo' : (jaInst() ? '✅ Sistema já instalado — início da assinatura' : '🔧 ' + (renov ? '🔄 Renovação de assinatura' : upg ? (aditivo() ? '➕ Upgrade — novos equipamentos' : '⬆ Upgrade — acesso à rede NMEA') : esc((REDES[p.rede] || {}).label || '')))) + '</span>' +
       '</div>' +
     '</div><img class="art" src="img/recursos.jpg" alt="SAFEBOAT no barco"></div></div>' +
     '<main>' +
@@ -2139,8 +2142,10 @@ function render() {
         '<div class="obs" style="margin-top:12px">Você já é cliente SAFEBOAT: os novos equipamentos são integrados à central que já está no seu barco e aparecem no mesmo app.</div></section>'
       : (f
           ? '<section><h2>' + (multiBarco() ? 'Suas embarcações' : 'Sua frota') + '</h2><div class="moncard"><b>🚤 ' + f.boats + ' embarcações</b>' +
-              '<div style="margin-top:10px">' + f.lines.map((l) => '<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #EFF0F4;font-size:13.5px"><span><b>' + l.qtd + '×</b> ' + esc(REDE_NOME[l.redeKey] || l.label) + '</span><span style="color:#6B7080">' + (comRede(l) ? 'kit + leitura de motorização' : 'kit por barco') + '</span></div>').join('') + '</div>' +
-              '<div class="obs" style="margin-top:12px"><b>Cada barco</b> recebe o kit correspondente à sua rede: central SAFEBOAT, sensores de fumaça e alagamento e, quando aplicável, T NMEA, conversor J1939-NMEA e cabo NMEA. A instalação é feita embarcação por embarcação pela equipe técnica SAFEBOAT.</div></div></section>'
+              '<div style="margin-top:10px">' + f.lines.map((l) => '<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #EFF0F4;font-size:13.5px"><span><b>' + l.qtd + '×</b> ' + esc(REDE_NOME[l.redeKey] || l.label) + '</span><span style="color:#6B7080">' + (jaInst() ? 'assinatura do monitoramento' : comRede(l) ? 'kit + leitura de motorização' : 'kit por barco') + '</span></div>').join('') + '</div>' +
+              (jaInst()
+                ? '<div class="obs" style="margin-top:12px"><b>Sem nova instalação.</b> O SAFEBOAT já está a bordo e em operação nestas embarcações. Esta proposta inicia a assinatura do monitoramento — os equipamentos seguem em comodato e a taxa de ativação é isenta.</div></div></section>'
+                : '<div class="obs" style="margin-top:12px"><b>Cada barco</b> recebe o kit correspondente à sua rede: central SAFEBOAT, sensores de fumaça e alagamento e, quando aplicável, T NMEA, conversor J1939-NMEA e cabo NMEA. A instalação é feita embarcação por embarcação pela equipe técnica SAFEBOAT.</div></div></section>')
           : '<section><h2>Seu kit de instalação</h2><div class="eqgrid">' + kitItens.map(pubKitCard).join('') + camKitCards() + '</div></section>') +
         '<section><h2>O que será monitorado</h2><div class="mongrid">' +
           (temRede
@@ -2203,7 +2208,7 @@ function compLinhas() {
   if (isRenov()) L.push({ t: 'Renovação da assinatura' + nBarcos, s: Number(p.valor) && baseItens.length ? 'inclui ' + baseItens.join(' e ') : 'sem alteração no sistema instalado', u: Number(p.valor) || 0, m: planoValor('mensal') });
   else if (aditivo()) { /* só os opcionais: a assinatura vigente não entra */ }
   else if (isUpgrade()) L.push({ t: 'Upgrade do seu SAFEBOAT' + nBarcos, s: (baseItens.length ? baseItens.join(' e ') + ' · ' : '') + 'assinatura no mesmo valor de hoje', u: Number(p.valor) || 0, m: planoValor('mensal') });
-  else if (!vibSolo()) L.push({ t: 'Sistema SAFEBOAT' + nBarcos, s: f ? 'kit de cada barco conforme a rede + monitoramento 24 h' : 'kit completo em comodato + monitoramento 24 h', u: Number(p.valor) || 0, uTxt: Number(p.valor) ? '' : 'Isenta 🎁', m: planoValor('mensal') });
+  else if (!vibSolo()) L.push({ t: 'Sistema SAFEBOAT' + nBarcos, s: jaInst() ? 'equipamentos já instalados (comodato) + monitoramento 24 h' : f ? 'kit de cada barco conforme a rede + monitoramento 24 h' : 'kit completo em comodato + monitoramento 24 h', u: Number(p.valor) || 0, uTxt: Number(p.valor) ? '' : 'Isenta 🎁', m: planoValor('mensal') });
   if (cams()) L.push({ t: 'Câmera' + (cams() > 1 ? 's' : '') + ' Wi-Fi Full HD · ' + cams(), u: camImpl(), m: camAssin('mensal') });
   if (vibs()) L.push({ t: 'VIB · ' + maqTxt(vibs()), s: 'sensor de vibração com IA', u: vibImpl(), uTxt: vibIsento() ? 'Isenta 🎁' : '', m: vibAssin('mensal') });
   if (combos()) L.push({ t: 'Combo Motor Completo · ' + combos(), s: 'VIB + câmera térmica por motor', u: comboImpl(), uTxt: comboImpl() ? '' : 'Isenta 🎁', m: comboAssin('mensal') });
@@ -2227,7 +2232,7 @@ function novaInvestHTML() {
     ? '<div class="invest-hint">Seu contrato SAFEBOAT venceu. Renove a assinatura para continuar com o monitoramento ativo.</div>'
     : (aditivo() ? '<div class="invest-hint">Você já é cliente SAFEBOAT. <b>Sua assinatura atual continua igual</b> — os valores abaixo são apenas o que este upgrade acrescenta.</div>'
     : (isUpgrade() ? '<div class="invest-hint">Você já é cliente SAFEBOAT. O upgrade tem um pagamento único e a sua assinatura passa a ser contratada pelo sistema.</div>' : ''));
-  const notaUso = isRenov() ? 'O monitoramento continua ativo, sem interrupção.' : (aditivo() ? 'Os novos equipamentos passam a valer depois da instalação. Sua assinatura atual não muda.' : isUpgrade() ? 'As novas leituras passam a valer depois da instalação.' : 'O período de uso só começa a contar depois da instalação e ativação do sistema.');
+  const notaUso = isRenov() ? 'O monitoramento continua ativo, sem interrupção.' : (aditivo() ? 'Os novos equipamentos passam a valer depois da instalação. Sua assinatura atual não muda.' : isUpgrade() ? 'As novas leituras passam a valer depois da instalação.' : jaInst() ? 'O sistema já está instalado: a assinatura passa a valer a partir do pagamento, sem interrupção do monitoramento.' : 'O período de uso só começa a contar depois da instalação e ativação do sistema.');
   return intro + '<div style="overflow-x:auto"><table class="comp">' +
       '<thead><tr><th>O que está incluído</th><th>Pagamento único</th><th>Por mês</th></tr></thead><tbody>' +
       linhas + desc +
@@ -2431,7 +2436,7 @@ function renderAceite() {
     '<div class="check"><input type="checkbox" id="aTermos"><span>Li e aceito os <a href="' + termosUrl + '" target="_blank">Termos de Uso e o Contrato de Prestação de Serviços</a> da SAFEBOAT (' + (p.segmento === 'B2B' ? 'empresas' : 'pessoa física') + ').</span></div>' +
     '<div class="pay-opts" id="payOpts" style="flex-wrap:wrap">' + payOptsHTML() + '</div>' +
     '<button class="cta" id="btnAceitar">' + ctaLabel() + '</button>' +
-    '<div style="margin-top:10px;font-size:12px;color:#8A8F9C;text-align:center">' + (isRenov() ? 'O pagamento renova sua assinatura SAFEBOAT pelo período escolhido (mensal ou anual). Não há alteração no equipamento nem nova instalação — o monitoramento continua ativo.' : (aditivo() ? 'O pagamento no fechamento inclui a ativação dos novos equipamentos <b>+</b> o acréscimo da assinatura no plano escolhido. Sua assinatura atual não muda.' : isUpgrade() ? 'O pagamento no fechamento inclui a ativação do upgrade <b>+</b> a assinatura escolhida — mesmo valor de hoje, agora contratada pelo sistema. A leitura passa a valer <b>após a instalação</b> · instalação em até <b>30 dias</b> a partir do pagamento.' : ((implIsento() ? 'O pagamento no fechamento é apenas da assinatura escolhida (mensalidade ou anuidade integral) — a ativação é cortesia.' : 'O pagamento no fechamento inclui a ' + unicoNome() + ' <b>+</b> a assinatura escolhida (mensalidade ou anuidade integral).') + ' O período de uso passa a valer <b>somente após a instalação e ativação</b> · ' + prazoTxt() + '.'))) + '</div>' +
+    '<div style="margin-top:10px;font-size:12px;color:#8A8F9C;text-align:center">' + (isRenov() ? 'O pagamento renova sua assinatura SAFEBOAT pelo período escolhido (mensal ou anual). Não há alteração no equipamento nem nova instalação — o monitoramento continua ativo.' : (aditivo() ? 'O pagamento no fechamento inclui a ativação dos novos equipamentos <b>+</b> o acréscimo da assinatura no plano escolhido. Sua assinatura atual não muda.' : isUpgrade() ? 'O pagamento no fechamento inclui a ativação do upgrade <b>+</b> a assinatura escolhida — mesmo valor de hoje, agora contratada pelo sistema. A leitura passa a valer <b>após a instalação</b> · instalação em até <b>30 dias</b> a partir do pagamento.' : ((implIsento() ? 'O pagamento no fechamento é apenas da assinatura escolhida (mensalidade ou anuidade integral) — a ativação é cortesia.' : 'O pagamento no fechamento inclui a ' + unicoNome() + ' <b>+</b> a assinatura escolhida (mensalidade ou anuidade integral).') + (jaInst() ? ' O sistema já está instalado — a assinatura passa a valer a partir do pagamento.' : ' O período de uso passa a valer <b>somente após a instalação e ativação</b> · ' + prazoTxt() + '.')))) + '</div>' +
   '</div>';
   wirePayOpts();
   const bg = document.getElementById('socGoogle'); if (bg) bg.addEventListener('click', () => loginSocial('google'));
@@ -2511,7 +2516,9 @@ function pagamentoHTML() {
         (p.plano === 'anual' && descPct() ? '<div>Desconto especial (' + descPct() + '% · fechamento na anuidade) <b style="float:right;margin-left:26px;color:#0B6B4D">− ' + fmtBRL(descontoAnual()) + '</b></div>' : '') +
         '<div style="border-top:1px solid #E3E5EB;margin-top:6px;padding-top:6px;font-weight:800;color:#2D324B">Total <span style="float:right;margin-left:26px;font-size:22px">' + fmtBRL(total) + '</span></div>' +
       '</div>';
-  const avisos = renov
+  const avisos = jaInst()
+    ? '<div style="margin-top:14px;font-size:12.5px;color:#4E5666;background:#F4F5F8;border-radius:10px;padding:10px 14px;text-align:left">✅ Sistema já instalado e em operação — a assinatura passa a valer a partir do pagamento, sem interrupção do monitoramento.</div>'
+    : renov
     ? '<div style="margin-top:14px;font-size:12.5px;color:#4E5666;background:#F4F5F8;border-radius:10px;padding:10px 14px;text-align:left">🔄 Renovação sem alteração no sistema — o monitoramento continua ativo pelo período contratado.</div>'
     : '<div style="margin-top:14px;font-size:12.5px;color:#4E5666;background:#F4F5F8;border-radius:10px;padding:10px 14px;text-align:left">' +
         (instEscolha() === 'PROPRIO' ? '📦 <b>Kit completo enviado ao seu instalador</b> após a confirmação do pagamento — o monitoramento é ativado após a instalação, com validação remota da SAFEBOAT.<br>' : '⏱ <b>Instalação em até 30 dias</b> a partir da data do pagamento' + (instEscolha() === 'SB' ? ', pela rede de instaladores SAFEBOAT' : '') + '.<br>') +
