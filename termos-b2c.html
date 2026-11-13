@@ -345,7 +345,8 @@ function preencherContrato(p) {
   const plano = PLANOS[p.plano];
   const fb = fleetKit(p.kit);   // negociação por frota com valores próprios
   const soloVib = String(p.kit || '').split(' + ').indexOf('#VIBSOLO') !== -1;   // exclusivo VIB: sem assinatura base
-  const assinBase = plano ? (fb ? Math.round(fb.boats * (anual ? fb.subAnual : fb.subMensal) * 100) / 100 : (soloVib ? 0 : plano.valor)) : 0;
+  const aditivoV = String(p.kit || '').split(' + ').indexOf('#ADITIVO') !== -1;   // aditivo de opcionais: assinatura vigente não é recobrada
+  const assinBase = aditivoV ? 0 : plano ? (fb ? Math.round(fb.boats * (anual ? fb.subAnual : fb.subMensal) * 100) / 100 : (soloVib ? 0 : plano.valor)) : 0;
   const camAssin = nc * (anual ? CAM.anual : CAM.mensal);
   const inst = instKit(p, fb);
   instPreencher(inst);
@@ -369,7 +370,8 @@ function preencherContrato(p) {
     total = liq;
   }
 
-  if (soloVib) set('valorImpl', 'não se aplica — a ativação desta contratação é exclusivamente a do VIB (Cláusula 3.7.2 e Anexo II)');
+  if (aditivoV) set('valorImpl', 'não se aplica — este aditivo contempla apenas os equipamentos opcionais discriminados nas cláusulas seguintes e no Anexo II; o sistema SAFEBOAT já está instalado na embarcação');
+  else if (soloVib) set('valorImpl', 'não se aplica — a ativação desta contratação é exclusivamente a do VIB (Cláusula 3.7.2 e Anexo II)');
   else if (renov && !implSist) set('valorImpl', 'não se aplica (renovação sem alteração no sistema)');
   else if (renov) set('valorImpl', fmtBRL(implSist) + ' (ativação contratada nesta renovação — itens discriminados no Anexo I)');
   else if (!implSist) set('valorImpl', 'isenta (cortesia SAFEBOAT)');
@@ -377,10 +379,10 @@ function preencherContrato(p) {
 
   if (plano) {
     set('planoLabel', plano.label);
-    set('valorAssin', soloVib ? 'composta exclusivamente pelo acréscimo do VIB (Cláusula 3.7.3)' : fmtBRL(assinBase) + plano.sufixo);
+    set('valorAssin', aditivoV ? 'mantida a assinatura já contratada pela CONTRATANTE, sem alteração; este aditivo acresce a ela apenas os valores dos opcionais (cláusulas seguintes e Anexo II)' : soloVib ? 'composta exclusivamente pelo acréscimo do VIB (Cláusula 3.7.3)' : fmtBRL(assinBase) + plano.sufixo);
   } else {
     set('planoLabel', 'a selecionar no aceite (mensal ou anual)');
-    set('valorAssin', soloVib ? 'R$ 49,90/máquina/mês ou R$ 499,00/máquina/ano (Cláusula 3.7.3)' : (fb ? fmtBRL(Math.round(fb.boats * fb.subMensal * 100) / 100) + '/mês ou ' + fmtBRL(Math.round(fb.boats * fb.subAnual * 100) / 100) + '/ano' : 'R$ 249,00/mês ou R$ 2.490,00/ano'));
+    set('valorAssin', aditivoV ? 'mantida a assinatura já contratada pela CONTRATANTE, sem alteração; este aditivo acresce a ela apenas os valores dos opcionais (cláusulas seguintes e Anexo II)' : soloVib ? 'R$ 49,90/máquina/mês ou R$ 499,00/máquina/ano (Cláusula 3.7.3)' : (fb ? fmtBRL(Math.round(fb.boats * fb.subMensal * 100) / 100) + '/mês ou ' + fmtBRL(Math.round(fb.boats * fb.subAnual * 100) / 100) + '/ano' : 'R$ 249,00/mês ou R$ 2.490,00/ano'));
   }
 
   // --- câmeras (comodato, só em instalação nova) ---
@@ -452,9 +454,9 @@ function preencherContrato(p) {
   }
 
   // --- Anexo II: composição ---
-  set('avImpl', renov ? 'não se aplica' : (implSist ? fmtBRL(implSist) : 'isenta'));
+  set('avImpl', (renov || aditivoV) ? 'não se aplica' : (implSist ? fmtBRL(implSist) : 'isenta'));
   set('avPlano', plano ? plano.label : 'a selecionar');
-  set('avAssin', fmtBRL(assinBase));
+  set('avAssin', aditivoV ? 'mantida (contrato vigente)' : fmtBRL(assinBase));
 
   set('dataExtenso', dataExtenso(p.aceite_at));
 }
