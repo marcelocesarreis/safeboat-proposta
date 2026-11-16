@@ -1911,10 +1911,14 @@ function instLinhaHTML() {
 }
 const REDE_NOME = { nenhuma: 'Sem rede NMEA/CAN', nmea: 'Rede NMEA', can: 'Rede CAN (com conversor)' };
 /* Valor da assinatura do plano — por frota (B2B) ou fixo (B2C) */
+/* #ASSIN=<mensal>/<anual>: assinatura base negociada para esta proposta (1 embarcação) */
+function assinNeg(kit) { const t = String(kit || '').split(' + ').find((k) => k.indexOf('#ASSIN=') === 0); if (!t) return null; const a = t.slice(7).split('/').map(Number); return (a[0] > 0 && a[1] > 0) ? { mensal: a[0], anual: a[1] } : null; }
 function planoValor(plano) {
   if (vibSolo() || aditivo()) return 0;   // exclusivo VIB / aditivo: só o acréscimo dos opcionais
   const f = fleet();
   if (f) return f.boats * (plano === 'anual' ? f.subAnual : f.subMensal);
+  const neg = assinNeg(p.kit);
+  if (neg) return neg[plano] || 0;
   return PLANOS[plano] ? PLANOS[plano].valor : 0;
 }
 /* Assinatura TOTAL do plano — já com a mensalidade/anuidade das câmeras embutida.

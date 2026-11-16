@@ -88,6 +88,8 @@ function fmtDataHora(iso) {
   } catch (e) { return iso; }
 }
 
+/* #ASSIN=<mensal>/<anual>: assinatura base negociada na proposta */
+function assinNeg(kit) { const t = String(kit || '').split(' + ').find((k) => k.indexOf('#ASSIN=') === 0); if (!t) return null; const a = t.slice(7).split('/').map(Number); return (a[0] > 0 && a[1] > 0) ? { mensal: a[0], anual: a[1] } : null; }
 async function main() {
   const app = document.getElementById('app');
   const ref = parseRef();
@@ -111,7 +113,7 @@ async function main() {
   document.title = 'Contrato Assinado — ' + (c.aceite_nome || c.cliente) + ' · SAFEBOAT';
   const numeroFmt = String(c.numero).padStart(4, '0');
   const docLabel = c.segmento === 'B2B' ? 'CNPJ' : 'CPF';
-  const plano = c.plano === 'anual' ? 'Anual (R$ 2.490,00/ano)' : c.plano === 'mensal' ? 'Mensal (R$ 249,00/mês)' : '—';
+  let plano = c.plano === 'anual' ? 'Anual (R$ 2.490,00/ano)' : c.plano === 'mensal' ? 'Mensal (R$ 249,00/mês)' : '—';
 
   // dados completos da proposta (kit, embarcação) — o contrato_get não os traz
   let prop = null;
@@ -120,6 +122,8 @@ async function main() {
     if (rows && rows.length) prop = rows[0];
   } catch (e) { /* segue sem os dados extras */ }
   if (prop) { c.kit = c.kit || prop.kit; c.barco = c.barco || prop.barco; c.modelo = c.modelo || prop.modelo; }
+  { const neg = assinNeg(c.kit); const brlN = (x) => Number(x).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });   // assinatura negociada (#ASSIN)
+    if (neg && c.plano === 'anual') plano = 'Anual (' + brlN(neg.anual) + '/ano)'; else if (neg && c.plano === 'mensal') plano = 'Mensal (' + brlN(neg.mensal) + '/mês)'; }
 
   let contratoHTML = c.contrato_html || null;
   // aceites anteriores à correção guardaram o modelo EM BRANCO: nesse caso o
@@ -209,7 +213,8 @@ function completarSnapshotAntigo(c) {
   const implSist = Number(c.valor) || 0;
   const camImpl = nc * CAMV.impl;
   const plano = PL[c.plano];
-  const assinBase = plano ? plano.valor : 0;
+  const negC = assinNeg(c.kit);
+  const assinBase = plano ? (negC ? negC[c.plano] : plano.valor) : 0;
   const camAssin = nc * (anual ? CAMV.anual : CAMV.mensal);
   const total = upg ? implSist : (renov ? assinBase : implSist + camImpl + assinBase + camAssin);
 
