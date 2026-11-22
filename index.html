@@ -1777,7 +1777,7 @@ async function main() {
     app.innerHTML = erroHTML('Não foi possível carregar a proposta');
     return;
   }
-  planoSel = p.plano || null;
+  planoSel = p.plano || (bf() ? 'anual' : null);
   pagSel = p.pagamento || 'pix';
   if (SOCIAL_LOGIN) await detectarSessaoSocial();
   render();
@@ -1844,6 +1844,8 @@ const aditivo = () => String(p.kit || '').split(' + ').indexOf('#ADITIVO') !== -
 /* #JAINST: sistema já instalado e em operação (barcos em demonstração que passam a pagar).
    A proposta só inicia a assinatura — os textos de kit/instalação/prazo não se aplicam. */
 const jaInst = () => String(p.kit || '').split(' + ').indexOf('#JAINST') !== -1;
+/* #BF: condição Black Friday 2026 (ativação do kit e instalação isentas) — vale só no plano anual */
+const bf = () => String(p.kit || '').split(' + ').indexOf('#BF') !== -1;
 const maqTxt = (n) => n + ' máquina' + (n > 1 ? 's' : '');
 /* O que a ativação cobre — em upgrade e renovação ela pode ser leitura de
    motorização, sensor de corrente, câmeras, ou uma combinação. */
@@ -1884,6 +1886,7 @@ function instMarc() {
 const instAplica = () => !isUpgrade() && !isRenov() && !vibSolo() && instMarc() !== null;
 const instEscolha = () => instAplica() ? (instSel || instMarc()) : null;
 function instDet() {
+  if (bf()) return { itens: [{ t: 'Instalação — Black Friday', v: 0 }], total: 0 };   // instalação por conta da SAFEBOAT
   const f = fleet();
   const boats = f ? (Number(f.boats) || 0) : 1;
   const comRede = f
@@ -2245,11 +2248,13 @@ function novaInvestHTML() {
     '<div class="comp-nota">' + (unico || !isRenov() ? 'O <b>pagamento único</b> é feito uma vez, no fechamento' + (unico ? ' (hardware em comodato' + (instValor() ? ' e instalação' : '') + ')' : '') + '. ' : '') + ' O valor <b>por mês</b> é ' + (aditivo() ? 'o acréscimo na sua assinatura' : 'a sua assinatura') + ' — escolha abaixo se prefere pagar mensal ou anual.</div>' +
     '</section>' +
     '<section id="secPlano"><h2>' + passo + (aditivo() ? 'Como prefere pagar o acréscimo da assinatura?' : 'Como prefere pagar a assinatura?') + '</h2>' +
+    (bf() ? '<div class="invest-hint">🖤 <b>Black Friday SAFEBOAT</b> — até 30/11, no <b>plano anual</b>, a ativação do kit e a instalação são por nossa conta.</div>' : '') +
     '<div class="invest">' +
+      (bf() ? '' :
       '<div class="card plan" data-plano="mensal"><div class="mark"></div><div class="t">Mensal</div><div class="v">' + fmtBRL(assinCom('mensal')) + '<small>/mês</small></div>' +
         '<div class="d">' + depois + '</div>' +
         '<div class="fech">No fechamento: <b>' + fmtBRL(totalCom('mensal')) + '</b><br><span style="color:#8A8F9C;font-size:12px">' + partes('mensal') + '</span></div></div>' +
-      '<div class="oumark">OU</div>' +
+      '<div class="oumark">OU</div>') +
       '<div class="card plan" data-plano="anual"><div class="badge">2 meses grátis</div><div class="mark"></div><div class="t">Anual</div><div class="v">' + fmtBRL(assinCom('anual')) + '<small>/ano</small></div>' +
         '<div class="d">Você paga 10 meses e usa 12' + (descPct() ? ' — já com o desconto especial de ' + descPct() + '% no fechamento' : '') + '.</div>' +
         '<div class="fech">No fechamento: <b>' + fmtBRL(totalCom('anual')) + '</b><br><span style="color:#8A8F9C;font-size:12px">' + partes('anual') + '</span></div></div>' +
