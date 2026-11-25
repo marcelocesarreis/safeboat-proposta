@@ -2706,7 +2706,7 @@ function preencherContratoDOM(doc, ac) {
   // frota (B2B)
   if (f) {
     set('boats', String(f.boats));
-    set('subBarco', fmtBRL(anual ? f.subAnual : f.subMensal) + (anual ? '/ano' : '/mês'));
+    set('subBarco', fmtBRL(f.subMensal));   // a cláusula 3.2 já diz 'por mês (ou o correspondente anual)'
     set('subTotal', fmtBRL(planoValor(ac.plano)) + (anual ? '/ano' : '/mês'));
   }
 
