@@ -60,7 +60,14 @@
 <p>2.3. A CONTRATANTE é a única responsável perante seus clientes finais por cobrança, faturamento, atendimento comercial, cumprimento da legislação aplicável (inclusive consumerista) e por eventuais reclamações, obrigando-se a manter a CONTRATADA indene quanto a tais demandas.</p>
 
 <h2>3. VALOR E FORMA DE PAGAMENTO</h2>
-<p>3.1. <b>Taxa de ativação.</b> Pela ativação do sistema na frota e pela cessão, em comodato, dos equipamentos do Anexo I, a CONTRATANTE pagará à CONTRATADA o valor total de <span class="mf" data-mf="valorImpl">R$ ____</span>, correspondente à soma do setup de cada embarcação conforme sua configuração de rede, no ato do aceite/assinatura. Embarcações adicionadas posteriormente têm o respectivo setup cobrado antes do cadastro.</p>
+<p id="cl31Padrao">3.1. <b>Taxa de ativação.</b> Pela ativação do sistema na frota e pela cessão, em comodato, dos equipamentos do Anexo I, a CONTRATANTE pagará à CONTRATADA o valor total de <span class="mf" data-mf="valorImpl">R$ ____</span>, correspondente à soma do setup de cada embarcação conforme sua configuração de rede, no ato do aceite/assinatura. Embarcações adicionadas posteriormente têm o respectivo setup cobrado antes do cadastro.</p>
+<div id="clFidel" style="display:none">
+<p>3.1. <b>Taxa de ativação — isenção condicionada à permanência.</b> A taxa de ativação do sistema, devida pela ativação de cada embarcação e pela cessão, em comodato, dos equipamentos do Anexo I, tem o valor de tabela, por embarcação, de <b>R$ 1.100,00</b> (embarcação sem rede NMEA/CAN), <b>R$ 1.300,00</b> (rede NMEA) ou <b>R$ 1.600,00</b> (rede CAN, com conversor), conforme o kit instalado. A CONTRATADA <b>dispensa a cobrança</b> dessa taxa nas <span class="mf" data-mf="boats">___</span> embarcações deste Contrato, sob a condição de que cada embarcação permaneça ativa no serviço pelo prazo mínimo de <b><span class="mf" data-mf="fidelMeses">__</span> (<span class="mf" data-mf="fidelExtenso">____</span>) meses</b>, contado da data de ativação do monitoramento da respectiva embarcação ou, para as embarcações já em operação em regime de piloto, da data do aceite deste Contrato.</p>
+<p>§ 1º <b>Cancelamento antes do prazo mínimo.</b> Se, antes de completado o prazo mínimo, a embarcação deixar de integrar o serviço — por exclusão solicitada pela CONTRATANTE (Cláusula 1.3), pela não renovação ou pela rescisão imotivada deste Contrato por iniciativa da CONTRATANTE, ou por rescisão decorrente de fato a ela imputável (Cláusula 11) —, a CONTRATANTE pagará à CONTRATADA, a título de multa compensatória, o valor de tabela da taxa de ativação daquela embarcação, indicado no caput desta Cláusula e atualizado na forma da Cláusula 3.4, em até 10 (dez) dias contados do cancelamento.</p>
+<p>§ 2º A multa é apurada por embarcação cancelada, não incide sobre as embarcações que permanecerem ativas e deixa de ser exigível, em relação a cada embarcação, quando completado o respectivo prazo mínimo. Não é devida quando o cancelamento decorrer de rescisão imotivada por iniciativa da CONTRATADA ou de infração contratual desta.</p>
+<p>§ 3º O prazo mínimo é próprio de cada embarcação e independe do prazo de vigência e das renovações previstos na Cláusula 10. O pagamento da multa não dispensa a restituição dos equipamentos em comodato (Cláusula 9) nem prejudica o disposto na Cláusula 11.2.</p>
+<p>§ 4º As condições desta Cláusula valem para as embarcações indicadas na proposta. A inclusão de novas embarcações na frota terá as condições de ativação ajustadas por escrito entre as Partes.</p>
+</div>
 <div id="clInstSB" style="display:none">
 <p>3.1.1. <b>Taxa de instalação.</b> A CONTRATANTE optou pela instalação dos equipamentos pela <b>rede de instaladores SAFEBOAT</b>, pelo valor de <span class="mf" data-mf="instVal">R$ ____</span>, em parcela única no ato do aceite, somado à taxa de ativação da Cláusula 3.1. A instalação será realizada pela CONTRATADA, diretamente ou por instalador credenciado por ela indicado, em data acordada, embarcação por embarcação, respondendo a CONTRATADA perante a CONTRATANTE pela sua execução, nos limites da Cláusula 7.3.</p>
 </div>
@@ -148,7 +155,7 @@
 </div>
 
 <h2>9. DO COMODATO DE EQUIPAMENTOS</h2>
-<p>9.1. Os hardwares são cedidos em comodato, em perfeito estado e calibrados, instalados pela CONTRATADA — diretamente ou por instalador credenciado da rede SAFEBOAT — em datas acordadas, embarcação por embarcação (ou enviados ao instalador da CONTRATANTE, na hipótese da Cláusula 3.1.1), em até 45 (quarenta e cinco) dias por lote, contados do pagamento da respectiva ativação.</p>
+<p>9.1. Os hardwares são cedidos em comodato, em perfeito estado e calibrados, instalados pela CONTRATADA — diretamente ou por instalador credenciado da rede SAFEBOAT — em datas acordadas, embarcação por embarcação (ou enviados ao instalador da CONTRATANTE, na hipótese da Cláusula 3.1.1), em até 45 (quarenta e cinco) dias por lote, <span data-mf="prazoBase">contados do pagamento da respectiva ativação</span>.</p>
 <p>9.2. O valor unitário de cada hardware, para reposição, consta do Anexo I.</p>
 <p>9.3. Na rescisão, a CONTRATANTE devolverá os hardwares em perfeito estado (salvo desgaste natural) em 10 (dez) dias, arcando com frete e logística. A CONTRATANTE é responsável pela reposição em caso de extravio, furto, roubo, sinistro ou danos por mau uso ou intervenção de terceiros não autorizados. Não restituídos, pagará o valor total dos hardwares ativos conforme Anexo I, corrigido.</p>
 
@@ -271,6 +278,18 @@ function set(field, valor) {
   document.querySelectorAll('[data-mf="' + field + '"]').forEach((el) => { el.textContent = valor; el.classList.add('filled'); });
 }
 function dataExtenso(iso) { const d = iso ? new Date(iso) : new Date(); return d.getDate() + ' de ' + MESES[d.getMonth()] + ' de ' + d.getFullYear(); }
+/* #FIDEL=<meses>: ativação isenta, condicionada à permanência mínima por embarcação */
+const EXTENSO = { 12: 'doze', 18: 'dezoito', 24: 'vinte e quatro', 30: 'trinta', 36: 'trinta e seis', 48: 'quarenta e oito', 60: 'sessenta' };
+function fidelKit(kit) { const t = String(kit || '').split(' + ').find((k) => k.indexOf('#FIDEL=') === 0); const n = t ? parseInt(t.slice(7), 10) : 0; return n > 0 && n <= 120 ? n : 0; }
+function fidelPreencher(meses) {
+  if (!meses) return;
+  const pad = document.getElementById('cl31Padrao'); if (pad) pad.style.display = 'none';
+  const cl = document.getElementById('clFidel'); if (cl) cl.style.display = '';
+  set('fidelMeses', String(meses));
+  set('fidelExtenso', EXTENSO[meses] || String(meses));
+  document.querySelectorAll('[data-mf="prazoBase"]').forEach((el) => { el.textContent = 'contados do aceite deste Contrato'; });
+  set('avImpl', 'isenta — condicionada à permanência de ' + meses + ' meses por embarcação (Cláusula 3.1)');
+}
 function parseFleet(kit) {
   const t = String(kit || '').split(' + ').find((k) => k.indexOf('#B2B=') === 0);
   if (!t) return null;
@@ -405,6 +424,7 @@ function parseFleet(kit) {
     itens.forEach((it) => { const li = document.createElement('li'); li.textContent = it; ul.appendChild(li); });
   }
   set('avImpl', renov ? 'não se aplica' : (implSist ? fmtBRL(implSist) : 'isenta'));
+  fidelPreencher(fidelKit(p.kit));
   set('avPlano', plano || 'a selecionar');
   set('avAssin', upg ? 'mantida — sem nova cobrança' : fmtBRL(assinTotal));
 
@@ -413,7 +433,7 @@ function parseFleet(kit) {
   if (f && f.lines && f.lines.length) {
     const tb = document.querySelector('#tblFrota tbody');
     tb.innerHTML = f.lines.map((l) =>
-      '<tr><td><b>' + l.qtd + '</b></td><td>' + (REDE_NOME[l.redeKey] || l.label || l.rede) + '</td><td>Central SAFEBOAT, sensores e componentes de rede conforme a configuração</td></tr>').join('');
+      '<tr><td><b>' + l.qtd + '</b></td><td>' + (REDE_NOME[l.redeKey] || l.label || l.rede) + '</td><td>' + ((l.redeKey === 'ativo') ? 'Kit SAFEBOAT já instalado e em operação' : 'Central SAFEBOAT, sensores e componentes de rede conforme a configuração') + '</td></tr>').join('');
   }
 })();
 </script>
