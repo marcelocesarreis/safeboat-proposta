@@ -2040,6 +2040,68 @@ function camSecaoHTML() {
     '</div></section>';
 }
 
+/* O que o VIB e a câmera térmica monitoram — espelha as telas atuais do app
+   (Saúde dos Motores, Vibração do motor e Câmera térmica). Ao mudar o app, revisar aqui. */
+const monCard = (titulo, itens, obs) => '<div class="moncard"><b>' + titulo + '</b><ul>' + itens.map((m) => '<li>' + m + '</li>').join('') + '</ul>' + (obs ? '<div class="obs">' + obs + '</div>' : '') + '</div>';
+function vibMonHTML() {
+  return '<div class="mongrid" style="margin-top:14px">' +
+    monCard('🔎 O que o VIB verifica em cada máquina', [
+      'Alinhamento do eixo',
+      'Combustão e injetores',
+      'Fixação e coxins',
+      'Rolamentos e reversora',
+      'Hélice e eixo',
+      'Faixa crítica de rotação: as rotações em que o conjunto vibra além do normal',
+    ], 'No app, cada sistema aparece como <b>OK</b>, <b>Observar</b> ou <b>Agir</b>, e cada máquina recebe uma nota de saúde.') +
+    monCard('📱 O que você acompanha no app', [
+      'Nota de saúde de cada motor e quantos sistemas já foram verificados',
+      'O que a análise encontrou, em linguagem simples: o que observar e quando agir',
+      'Aviso na tela do barco quando há item para observar',
+      'Horímetro: o VIB soma sozinho as horas de operação de cada motor',
+      'Mapa do barco: as faixas de rotação em que a embarcação ressoa',
+      'Eventos registrados: impacto, mudança de regime, anomalia e degrau de vibração',
+    ]) +
+    monCard('🛠 Dados para o seu mecânico', [
+      'Severidade da vibração, em mm/s',
+      'Rotação estimada pela vibração, comparada à do painel quando o motor tem rede NMEA/CAN',
+      'Frequência dominante e assinatura de frequências',
+      'Pico de aceleração e fator de crista',
+      'Histórico por período, com gráficos de vibração e de rotação',
+    ]) +
+  '</div>';
+}
+function termMonHTML() {
+  return '<div class="mongrid" style="margin-top:14px">' +
+    monCard('🔥 O que a câmera pode vigiar', [
+      '<b>Motor:</b> turbina, coletor de escape, alternador, bomba d’água, mancal e bloco',
+      '<b>Escapamento:</b> coletor, turbina e tubulação',
+      '<b>Gerador:</b> escape, motor e cabeça geradora',
+      '<b>Quadro elétrico:</b> disjuntores, barramentos e terminais',
+      '<b>Banco de baterias:</b> terminais e corpo das baterias',
+      '<b>Inversor e carregador:</b> dissipador e terminais CC/CA',
+      '<b>Estabilizador giroscópico:</b> carcaça, freio hidráulico, acionamento e refrigeração',
+      '<b>Eixo, mancais e acoplamentos</b>',
+      '<b>Bombas:</b> d’água, de porão e de combustível',
+    ], 'Cada câmera vigia uma cena. Na instalação, as zonas são marcadas sobre a imagem, cada uma com o seu limite de temperatura.') +
+    monCard('🌡 O que ela mede e avisa', [
+      'Temperatura máxima e média da cena',
+      'Temperatura de cada zona, comparada ao limite daquela zona',
+      'Estado de cada zona: Normal, Atenção, Alerta ou Crítico',
+      'Alerta quando uma zona passa do limite ou a cena passa do teto da câmera',
+      'Alerta de subida rápida de temperatura, o sinal de um princípio de incêndio',
+      'Cada alerta traz a zona, a imagem térmica do momento e a orientação do que verificar',
+    ]) +
+    monCard('📱 O que você acompanha no app', [
+      'Imagem térmica com as zonas marcadas',
+      'Modo ao vivo e foto na hora, quando você pedir',
+      'Gráficos de temperatura por 1 dia, 7 dias, 1 mês ou período escolhido',
+      'Faixa habitual: o sistema aprende o normal de cada zona e sugere o limite; nada muda sem a sua aprovação',
+      'Histórico de alertas, com a imagem de cada ocorrência',
+      'Aviso de temperatura anormal na tela do barco',
+    ]) +
+  '</div>';
+}
+
 /* Seção da câmera térmica com IA — e do Combo Motor Completo. Só com #TERM ou #COMBO. */
 function termSecaoHTML() {
   const n = terms(), nc = combos(), tot = n + nc;
@@ -2077,7 +2139,10 @@ function termSecaoHTML() {
         '<div class="cam-req">📶 <b>Requer 12 V e Wi-Fi a bordo.</b> A câmera transmite pela internet da embarcação — disponibilidade e consumo de dados por conta do usuário. Entrega e instalação em até 30 dias, do Sul do Brasil ao Rio de Janeiro.</div>' +
         precoTerm + comboBox +
       '</div>' +
-    '</div></section>';
+    '</div>' +
+    termMonHTML() +
+    ((nc && !vibs()) ? '<div style="margin:18px 0 0;font-size:14px;font-weight:800;color:#2D324B">VIB — sensor de vibração do combo</div>' + vibMonHTML() : '') +
+    '</section>';
 }
 
 /* Seção do VIB — manutenção preditiva por vibração, com IA. Só quando #VIB=n.
@@ -2093,7 +2158,7 @@ function vibSecaoHTML() {
         '<p><b>A máquina avisa meses antes de quebrar.</b> Um sensor em cada motor ou <b>gerador marítimo</b> e a <b>IA da SAFEBOAT</b> aprendem a vibração de cada máquina e antecipam combustão irregular, desalinhamento, hélice desbalanceada, coxins e rolamentos — antes de virar quebra ou reboque.</p>' +
         '<button type="button" class="saiba" data-alvo="vibMais">Saiba mais ▾</button>' +
         '<div id="vibMais" class="mais"' + (solo ? '' : ' hidden') + '>' +
-          '<p>O que ele antecipa: <b>problemas de combustão</b>, <b>desalinhamento de eixos</b>, <b>desbalanceamento de hélices</b>, <b>falhas estruturais</b> (coxins, fixações e buchas) e <b>falhas em rolamentos</b> — em motores e também em <b>geradores marítimos</b>. Tudo aparece na vibração muito antes de virar quebra, fumaça ou reboque — o VIB acompanha a tendência e avisa no app enquanto o reparo ainda é simples e barato. A IA aprende, sozinha, a assinatura de CADA máquina na primeira semana de uso.</p>' +
+          '<p>Esses problemas aparecem na vibração muito antes de virar quebra, fumaça ou reboque, em motores e também em <b>geradores marítimos</b>. O VIB acompanha a tendência e avisa no app enquanto o reparo ainda é simples e barato. A IA aprende, sozinha, a assinatura de CADA máquina na primeira semana de uso.</p>' +
           '<div class="cam-req" style="background:#EEF3FB;border-color:#C6D8F2;color:#16335E">🌊 <b>Feito para o mar:</b> a análise espectral (FFT, severidade conforme a norma ISO 10816) separa o balanço das ondas da assinatura mecânica da máquina — direto no sensor. Sem fios: fixação adesiva naval e bateria recarregável, sem furos e sem mexer na elétrica.</div>' +
         '</div>' +
         (solo
@@ -2105,7 +2170,9 @@ function vibSecaoHTML() {
           '<div><span>Assinatura anual</span><b>' + (solo ? '' : '+ ') + fmtBRL(vibUnit('anual')) + ' por máquina/ano' + (n > 1 ? ' (' + n + '× = ' + fmtBRL(n * vibUnit('anual')) + '/ano)' : '') + ' <span style="font-weight:600;color:#0B6B4D">· paga 10 meses</span></b></div>' +
         '</div>') +
       '</div>' +
-    '</div></section>';
+    '</div>' +
+    vibMonHTML() +
+    '</section>';
 }
 
 const isento = () => !Number(p.valor);
